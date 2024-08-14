@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Jockey+One&display=swap');
+
+/* 設置 main_page 來確保佔滿整個視口 */
+.main_page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;  /* 確保佔滿整個視口高度 */
+    width: 100vw;   /* 確保佔滿整個視口寬度 */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* title_zone 佔滿 10% 的高度 */
+  .title_zone {
+    flex: 0 0 20%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    font-family: 'Jockey One';
+    font-size: 5em;
+    color: black;
+    font-weight: 400;
+    background-color: #EBDEBE;
+  }
+  
+  /* function_zone 佔滿 45% 的高度 */
+  .function_zone1, .function_zone2 {
+    flex: 0 0 40%;
+    width: 100%;
+    display: flex;
+    box-sizing: border-box;
+    justify-content: space-between; /* 使項目之間的間距相等 */
+    align-items: center; /* 垂直方向上居中對齊 */
+    background-color: #EBDEBE;
+  }
+  
+  /* 統一設置 cost_sanity_check_zone 和其他功能區的樣式 */
+  .cost_sanity_check_zone,
+  .other_function1, .other_function2,
+  .other_function3, .other_function4,
+  .other_function5 {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 垂直方向上居中對齊 */
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box; /* 確保寬度包括內邊距和邊框 */
+  }
+  
+  /* 統一設置按鈕樣式 */
+  .cost_sanity_check_btn,
+  .other_function1_btn, .other_function2_btn,
+  .other_function3_btn, .other_function4_btn,
+  .other_function5_btn {
+    background-color: #b0aeae;
+    border-radius: 70px;
+    width: 80%;
+    height: 60%;
+    font-family: 'Jockey One';
+    font-size: 2.5em;
+    color: black;
+    font-weight: 500;
+
+  }
+  
