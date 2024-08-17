@@ -84,3 +84,7 @@
     color: black;
     font-weight: 400;
   }
+
+  .hidden-file-input {
+    display: none;
+  }
