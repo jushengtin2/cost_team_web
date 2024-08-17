@@ -11,6 +11,8 @@ export default function CostSanityCheckPage() {
   const [programMatrixFileName, setProgramMatrixFileName] = useState<string>("");
   const [mspekeFileName, setMspekeFileName] = useState<string>("");
   const [hardwareQualMatrixFileName, setHardwareQualMatrixFileName] = useState<string>("");
+  const [downloadFileName, setDownloadFileName] = useState<string>('');
+  const [fileUrl, setFileUrl] = useState<string>('');
 
   const handleButtonClick = (inputRef) => {
     if (inputRef.current) {
@@ -44,6 +46,7 @@ export default function CostSanityCheckPage() {
     try {
       const response = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
+        mode: 'cors',
         body: formData,
       });
 
@@ -56,6 +59,49 @@ export default function CostSanityCheckPage() {
     } catch (error) {
       console.error('上傳過程中發生錯誤:', error);
     }
+  };
+
+  const handle_BOM_Cost_Check = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/bom_cost_check', {
+        method: 'GET',
+        mode: 'cors',
+        
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setFileUrl(url); // 保存生成的 URL
+        setDownloadFileName('bom_cost_check.csv'); // 保存文件名
+        console.log('CSV 文件已准备好下载');
+      } else {
+        console.error('无法获取 CSV 文件');
+      }
+    } catch (error) {
+      console.error('获取文件时发生错误:', error);
+    }
+  };
+
+  const handleDownload = () => {
+    if (fileUrl) {
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = downloadFileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(fileUrl);
+      console.log('CSV 文件已下载');
+    }
+  };
+
+  const handle_HQM_based_component_Check = async() => {
+    // 在这里添加 HQM-Based Component Check 的逻辑
+  };
+
+  const handle_BOM_based_component_Check = async() => {
+    // 在这里添加 BOM-Based Component Check 的逻辑
   };
 
   return (
@@ -81,7 +127,7 @@ export default function CostSanityCheckPage() {
           </div>
           <div className='hard_qual_matrix_btn_zone'>
             <Button className='hard_qual_matrix_btn' onClick={() => handleButtonClick(hardwareQualMatrixFileInputRef)}>
-              Hardware Qual Matrix
+              HQM
             </Button>
           </div>
           <div className='delete_zone'>
@@ -94,15 +140,54 @@ export default function CostSanityCheckPage() {
               Upload
             </Button>
           </div>
-          <div className='file_name_display'>
-            {programMatrixFileName && <div>Program Matrix: {programMatrixFileName}</div>}
-            {mspekeFileName && <div>MSPEKE: {mspekeFileName}</div>}
-            {hardwareQualMatrixFileName && <div>Hardware Qual Matrix: {hardwareQualMatrixFileName}</div>}
+        </div>
+
+        <div className='choose_function_zone'>
+          <div className='choose_function_title'>
+            Choose the function:
+          </div>
+          <div className='cost_check_zone'>
+            <Button className='cost_check_btn' onClick={handle_BOM_Cost_Check}>
+              BOM Cost Check
+            </Button>
+          </div>
+          <div className='HQM_based_component_check_zone'>
+            <Button className='HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check}>
+              HQM-Based Component check
+            </Button>
+          </div>
+          <div className='BOM_based_component_check_zone'>
+            <Button className='BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check}>
+              BOM-Based Component check
+            </Button>
           </div>
         </div>
 
-        <div className='function_choose_plus_result_zone'>
-          123
+        <div className='message_plus_result_zone'>
+          <div className='message_zone'>
+            <div className='message_zone_title'>
+              Message Box
+            </div>
+            <div className='message'>
+              {programMatrixFileName && <div>Program Matrix: {programMatrixFileName}</div>}
+              {mspekeFileName && <div>MSPEKE: {mspekeFileName}</div>}
+              {hardwareQualMatrixFileName && <div>Hardware Qual Matrix: {hardwareQualMatrixFileName}</div>}
+            </div>
+          </div>
+
+          <div className='result_zone'>
+            <div className='result_title'>
+              Result
+            </div>
+            {downloadFileName && (
+              <div className='download_zone'>
+                <p>File ready: {downloadFileName}</p>
+                <Button onClick={handleDownload}>
+                  Download {downloadFileName}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 隱藏的文件輸入框 */}

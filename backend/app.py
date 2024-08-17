@@ -1,14 +1,19 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import pandas as pd
 import os
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
-UPLOAD_FOLDER = './uploads'
+UPLOAD_FOLDER = './uploads'  #把上傳的檔案存起來
 if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+    os.makedirs(UPLOAD_FOLDER)  
+
+@app.route('/', methods=['GET'])
+def get_data():
+    return jsonify({"message": "Hello from Flask!"})
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -39,6 +44,22 @@ def upload_file():
     print(f"Hardware Qual Matrix 文件內容:\n{hardware_qual_matrix_df.head()}")
 
     return jsonify({"message": "文件已成功上傳並處理"}), 200
+
+@app.route('/bom_cost_check', methods=['GET'])
+def bom_cost_check():
+    # 示例 DataFrame
+    data = {
+        'Item': ['Widget A', 'Widget B', 'Widget C'],
+        'Cost': [100, 150, 200]
+    }
+    df = pd.DataFrame(data)
+
+    # 将 DataFrame 转换为 CSV
+    csv_buffer = BytesIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+
+    return send_file(csv_buffer, as_attachment=True, download_name='bom_cost_check.csv', mimetype='text/csv')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
