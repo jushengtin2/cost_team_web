@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import os
 from io import BytesIO
+import shutil
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
@@ -45,11 +46,26 @@ def upload_file():
 
     return jsonify({"message": "文件已成功上传并保存"}), 200
 
+@app.route('/delete', methods=['POST'])
+def delete_folder():
+    try:
+        # 確保資料夾存在
+        if os.path.exists(UPLOAD_FOLDER):
+            shutil.rmtree(UPLOAD_FOLDER)  # 刪除整個資料夾及其內容
+            os.makedirs(UPLOAD_FOLDER)  # 刪除後重新創建空的資料夾，方便之後的上傳操作
+            
+            return jsonify({"message": "資料夾已成功刪除"}), 200
+        else:
+            return jsonify({"error": "資料夾不存在"}), 400
+    except Exception as e:
+        return jsonify({"error": f"刪除資料夾過程中發生錯誤: {str(e)}"}), 500
+
+
+
 @app.route('/bom_cost_check', methods=['GET'])
 def bom_cost_check():
     global file_names
 
-    # 获取文件路径
     program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
     mspeke_file_path = os.path.join(UPLOAD_FOLDER, file_names.get('mspeke_file', ''))
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('hardware_qual_matrix_file', ''))

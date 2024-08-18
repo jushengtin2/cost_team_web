@@ -13,6 +13,9 @@ export default function CostSanityCheckPage() {
   const [hardwareQualMatrixFileName, setHardwareQualMatrixFileName] = useState<string>("");
   const [downloadFileName, setDownloadFileName] = useState<string>('');
   const [fileUrl, setFileUrl] = useState<string>('');
+  const [deleteMessage, setDeleteMessage] = useState<string>(''); // 新增的状态变量
+  const [uploadMessage, setUploadMessage] = useState<string>('');
+
 
   const handleButtonClick = (inputRef) => {
     if (inputRef.current) {
@@ -22,6 +25,8 @@ export default function CostSanityCheckPage() {
 
   const handleFileChange = (event, setFileName) => {
     const file = event.target.files[0];
+    setDeleteMessage("");
+    setUploadMessage("");
     if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') )) {
       setFileName(file.name);
       console.log("選擇的文件:", file.name);
@@ -29,21 +34,61 @@ export default function CostSanityCheckPage() {
       alert("請選擇一個 Excel 文件 (.xlsx 或 .xls)");
     }
   };
+ 
+  const handleDelete = async () => {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/delete', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-  const handleDelete = () => {
-    setProgramMatrixFileName("");
-    setMspekeFileName("");
-    setHardwareQualMatrixFileName("");
-    console.log("已刪除選擇的文件");
+        if (response.ok) {
+            console.log("資料已成功刪除");
+            setDeleteMessage("資料已成功刪除"); // 设置成功消息
+            setUploadMessage("")
+            setProgramMatrixFileName("");
+            setMspekeFileName("");
+            setHardwareQualMatrixFileName("");
+
+            // 清空文件输入字段的值
+            if (programMatrixFileInputRef.current) {
+              programMatrixFileInputRef.current.value = "";
+            }
+            if (mspekeFileInputRef.current) {
+              mspekeFileInputRef.current.value = "";
+            }
+            if (hardwareQualMatrixFileInputRef.current) {
+              hardwareQualMatrixFileInputRef.current.value = "";
+            }
+        } else {
+            console.error("刪除資料失敗");
+            setDeleteMessage("刪除資料失敗"); // 设置失败消息
+        }
+    } catch (error) {
+        console.error("刪除過程中發生錯誤:", error);
+        setDeleteMessage("刪除過程中發生錯誤"); // 设置错误消息
+    }
   };
 
+
   const handleUpload = async () => {
+    if (!programMatrixFileInputRef.current.files[0] || !mspekeFileInputRef.current.files[0] || !hardwareQualMatrixFileInputRef.current.files[0]) {
+      console.error('文件未上傳');
+      setUploadMessage('文件未上傳');
+      return;
+  }
+
     const formData = new FormData();
     formData.append('programMatrixFile', programMatrixFileInputRef.current.files[0]);
     formData.append('mspekeFile', mspekeFileInputRef.current.files[0]);
     formData.append('hardwareQualMatrixFile', hardwareQualMatrixFileInputRef.current.files[0]);
 
     try {
+      
+
       const response = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
         mode: 'cors',
@@ -52,9 +97,11 @@ export default function CostSanityCheckPage() {
 
       if (response.ok) {
         console.log('檔案已成功上傳到後端');
-        handleDelete(); // 清空所有文件名
+        setUploadMessage('上傳成功')
+        
       } else {
         console.error('檔案上傳失敗');
+        setUploadMessage('上傳失敗')
       }
     } catch (error) {
       console.error('上傳過程中發生錯誤:', error);
@@ -66,12 +113,11 @@ export default function CostSanityCheckPage() {
       const response = await fetch('http://127.0.0.1:5000/bom_cost_check', {
         method: 'GET',
         mode: 'cors',
-        
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const blob = await response.blob(); //blob = binary big object
+        const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
         setFileUrl(url); // 保存生成的 URL
         setDownloadFileName('bom_cost_check.csv'); // 保存文件名
         console.log('CSV 文件已准备好下载');
@@ -172,6 +218,8 @@ export default function CostSanityCheckPage() {
               {programMatrixFileName && <div>Program Matrix: {programMatrixFileName}</div>}
               {mspekeFileName && <div>MSPEKE: {mspekeFileName}</div>}
               {hardwareQualMatrixFileName && <div>Hardware Qual Matrix: {hardwareQualMatrixFileName}</div>}
+              {deleteMessage && <div>{deleteMessage}</div>} {/* 显示删除后的消息 */}
+              {uploadMessage && <div>{uploadMessage}</div>}
             </div>
           </div>
 
