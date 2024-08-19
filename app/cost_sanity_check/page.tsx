@@ -87,7 +87,7 @@ export default function CostSanityCheckPage() {
     formData.append('hardwareQualMatrixFile', hardwareQualMatrixFileInputRef.current.files[0]);
 
     try {
-      
+
 
       const response = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
@@ -119,7 +119,7 @@ export default function CostSanityCheckPage() {
         const blob = await response.blob(); //blob = binary big object
         const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
         setFileUrl(url); // 保存生成的 URL
-        setDownloadFileName('bom_cost_check.csv'); // 保存文件名
+        setDownloadFileName('program_matrix_highlight_color.xlsx'); // 保存文件名
         console.log('CSV 文件已准备好下载');
       } else {
         console.error('无法获取 CSV 文件');
@@ -143,11 +143,45 @@ export default function CostSanityCheckPage() {
   };
 
   const handle_HQM_based_component_Check = async() => {
-    // 在这里添加 HQM-Based Component Check 的逻辑
+    try {
+      const response = await fetch('http://127.0.0.1:5000/hqm_based_component_check', {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob(); //blob = binary big object
+        const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
+        setFileUrl(url); // 保存生成的 URL
+        setDownloadFileName('HQM_Based_component_error_list.xlsx'); // 保存文件名
+        console.log('hqm_based_component_check文件已准备好下载');
+      } else {
+        console.error('无法获取hqm_based_component_check文件');
+      }
+    } catch (error) {
+      console.error('获取hqm_based_component_check时发生错误:', error);
+    }
   };
 
   const handle_BOM_based_component_Check = async() => {
-    // 在这里添加 BOM-Based Component Check 的逻辑
+    try {
+      const response = await fetch('http://127.0.0.1:5000/bom_based_component_check', {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob(); //blob = binary big object
+        const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
+        setFileUrl(url); // 保存生成的 URL
+        setDownloadFileName('BOM_Based_component_error_list.xlsx'); // 保存文件名
+        console.log('bom_based_component_check文件已准备好下载');
+      } else {
+        console.error('无法获取bom_based_component_check');
+      }
+    } catch (error) {
+      console.error('获取bom_based_component_check时发生错误:', error);
+    }
   };
 
   return (
