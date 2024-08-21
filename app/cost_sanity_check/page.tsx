@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './cost_sanity_check_page.css';
 import { useRef, useState } from 'react';
@@ -20,7 +21,8 @@ export default function CostSanityCheckPage() {
   const [fileUrl2, setFileUrl2] = useState<string>('');
   const [deleteMessage, setDeleteMessage] = useState<string>(''); 
   const [uploadMessage, setUploadMessage] = useState<string>('');
-
+  const [loading, setLoading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
 
   const handleButtonClick = (inputRef) => {
     if (inputRef.current) {
@@ -57,6 +59,7 @@ export default function CostSanityCheckPage() {
             setProgramMatrixFileName("");
             setMspekeFileName("");
             setHardwareQualMatrixFileName("");
+            setUploadComplete(false)
 
             // 清空文件输入字段的值
             if (programMatrixFileInputRef.current) {
@@ -90,6 +93,7 @@ export default function CostSanityCheckPage() {
     formData.append('programMatrixFile', programMatrixFileInputRef.current.files[0]);
     formData.append('mspekeFile', mspekeFileInputRef.current.files[0]);
     formData.append('hardwareQualMatrixFile', hardwareQualMatrixFileInputRef.current.files[0]);
+    
 
     try {
 
@@ -101,7 +105,8 @@ export default function CostSanityCheckPage() {
 
       if (response.ok) {
         console.log('Upload successfully');
-        setUploadMessage('Upload successfully')
+        setUploadMessage('Upload successfully');
+        setUploadComplete(true)
         
       } else {
         console.error('Fail to upload');
@@ -113,6 +118,9 @@ export default function CostSanityCheckPage() {
   };
 
   const handle_BOM_Cost_Check = async () => {
+    setLoading(true); // 顯示旋轉動畫
+    setDownloadFileName('');
+    setDownloadFileName2('');
     try {
       const response = await fetch('http://127.0.0.1:5000/bom_cost_check', {
         method: 'GET',
@@ -149,6 +157,8 @@ export default function CostSanityCheckPage() {
       }
     } catch (error) {
       console.error('获取文件时发生错误:', error);
+    }finally {
+      setLoading(false); // 隱藏旋轉動畫
     }
     
   };
@@ -178,7 +188,10 @@ export default function CostSanityCheckPage() {
     }
   };
 
-  const handle_HQM_based_component_Check = async() => {
+  const handle_HQM_based_component_Check = async () => {
+    setDownloadFileName('');
+    setDownloadFileName2('');
+    setLoading(true); // 顯示旋轉動畫
     try {
       const response = await fetch('http://127.0.0.1:5000/hqm_based_component_check', {
         method: 'GET',
@@ -186,8 +199,8 @@ export default function CostSanityCheckPage() {
       });
 
       if (response.ok) {
-        const blob = await response.blob(); //blob = binary big object
-        const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
+        const blob = await response.blob(); // blob = binary big object
+        const url = window.URL.createObjectURL(blob);  // 生成一個url來下載這個blob
         setFileUrl(url); // 保存生成的 URL
         setDownloadFileName('HQM_Based_component_error_list.xlsx'); // 保存文件名
         console.log('hqm_based_component_check文件已准备好下载');
@@ -196,10 +209,15 @@ export default function CostSanityCheckPage() {
       }
     } catch (error) {
       console.error('获取hqm_based_component_check时发生错误:', error);
+    } finally {
+      setLoading(false); // 隱藏旋轉動畫
     }
   };
 
   const handle_BOM_based_component_Check = async() => {
+    setDownloadFileName('');
+    setDownloadFileName2('');
+    setLoading(true); // 顯示旋轉動畫
     try {
       const response = await fetch('http://127.0.0.1:5000/bom_based_component_check', {
         method: 'GET',
@@ -217,6 +235,9 @@ export default function CostSanityCheckPage() {
       }
     } catch (error) {
       console.error('获取bom_based_component_check时发生错误:', error);
+    }
+    finally {
+      setLoading(false); // 隱藏旋轉動畫
     }
   };
 
@@ -237,7 +258,7 @@ export default function CostSanityCheckPage() {
           <div className='upload_file_zone_title'>
             Upload the file here:
           </div>
-          <div className='bom_btn_zone'>
+          <div className='bom_btn_zone'> {/* 檢查 programMatrixFileName 是否為空或正在加載*/}
             <Button className='bom_btn' onClick={() => handleButtonClick(programMatrixFileInputRef)}>
               Program Matrix
             </Button>
@@ -269,17 +290,17 @@ export default function CostSanityCheckPage() {
             Choose the function:
           </div>
           <div className='cost_check_zone'>
-            <Button className='cost_check_btn' onClick={handle_BOM_Cost_Check}>
+            <Button className='cost_check_btn' onClick={handle_BOM_Cost_Check} disabled={!uploadComplete} >
               BOM Cost Check
             </Button>
           </div>
           <div className='HQM_based_component_check_zone'>
-            <Button className='HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check}>
+            <Button className='HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check} disabled={!uploadComplete} >
               HQM-Based Component check
             </Button>
           </div>
           <div className='BOM_based_component_check_zone'>
-            <Button className='BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check}>
+            <Button className='BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check} disabled={!uploadComplete} >
               BOM-Based Component check
             </Button>
           </div>
@@ -303,15 +324,18 @@ export default function CostSanityCheckPage() {
             <div className='result_title'>
               Result
             </div>
+            <div className="spinner">
+              {loading && <CircularProgress size={50} />}
+            </div>
+
             {downloadFileName && (
               <div className='download_zone'>
-                <p><Button onClick={handleDownload}>
+                <p><Button onClick={handleDownload} className='handleDownload'>
                   {downloadFileName}
                 </Button></p>
-                <p><Button onClick={handleDownload2}>
-                  {downloadFileName2}
+                <p><Button onClick={handleDownload2} className='handleDownload'>
+                  {downloadFileName2} 
                 </Button></p>
-                
               </div>
             )}
           </div>

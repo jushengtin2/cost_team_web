@@ -167,3 +167,16 @@
     flex-direction: column;
 
   }
+
+  .spinner{
+    display: flex;
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+    color: #010101;
+  }
+
+  .handleDownload{
+    font-size: 1em;
+    color: #51514e;
+    font-family: 'Jockey One';
+  }
