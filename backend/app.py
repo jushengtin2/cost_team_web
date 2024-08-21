@@ -22,7 +22,7 @@ file_names = {}  #存上傳的檔案 因為上傳的program matrix不會真的�
 def get_data():
     return jsonify({"message": "Hello from Flask!"})
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST'])    #這邊要多寫一個測試程式 看有沒有上傳正確的格式
 def upload_file():
     global file_names
 
@@ -41,7 +41,6 @@ def upload_file():
     mspeke_file.save(mspeke_file_path)
     hardware_qual_matrix_file.save(hardware_qual_matrix_path)
 
-    # 记录文件名
     file_names['program_matrix_file'] = program_matrix_file.filename
     file_names['mspeke_file'] = mspeke_file.filename
     file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
@@ -64,7 +63,7 @@ def delete_folder():
     except Exception as e:
         return jsonify({"error": f"刪除資料夾過程中發生錯誤: {str(e)}"}), 500
 
-@app.route('/bom_cost_check', methods=['GET'])
+@app.route('/bom_cost_check', methods=['GET'])   #目前是回傳只有價格不同的列表 不是有highlight color的
 def bom_cost_check():
     
     program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
@@ -83,7 +82,6 @@ def bom_cost_check():
         block_start_indices = df.index[df['Release(s)'] == 'All (NPI 2024)'].tolist()
 
         error_result = []
-        error_result_AV = []
 
         for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
             block = df.iloc[start:end]
@@ -95,25 +93,22 @@ def bom_cost_check():
 
                 if abs(total_different_price) > 0.01:
                     error_result.append([block.iloc[0]['AV\nLevel 2'], block.iloc[0]['Description'], total_av_price, total_sa_price, total_different_price])
-                    error_result_AV.append(block.iloc[0]['AV\nLevel 2'])
-
-        # 創建工作簿並將結果寫入到指定的工作表中
-        wb = Workbook()
+                    
+        
+        wb = Workbook() #創建工作簿並將結果寫入到指定的工作表中
         ws = wb.active
         ws.title = 'BOM Cost Check'
 
-        # 寫入header
-        ws.append(['AV Level 2', 'Description', 'Total AV Price', 'Total SA Price', 'Price Difference'])
+        ws.append(['AV Level 2', 'Description', 'Total AV Price', 'Total SA Price', 'Price Difference'])    #寫入header
 
-        # 寫入數據
-        for row in error_result:
+        for row in error_result:    #寫入數據
             ws.append(row)
 
-        # 保存工作簿到BytesIO對象
-        excel_buffer = BytesIO()
+        
+        excel_buffer = BytesIO()    #保存工作簿到BytesIO對象
         wb.save(excel_buffer)
         excel_buffer.seek(0)
-        wb.close()  # 確保工作簿已關閉
+        wb.close()                  #確保工作簿已關閉
 
         return send_file(
             excel_buffer,
@@ -125,9 +120,64 @@ def bom_cost_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/bom_cost_check_for_highlight_file', methods=['GET'])
+def bom_cost_check_for_highlight_file():
+    
+    program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
 
+    if not os.path.exists(program_matrix_path):
+        return jsonify({"error": "The program matrix file is missing. Please upload the file first."}), 400
 
+    try:
+        with pd.ExcelFile(program_matrix_path) as xls:  # 使用 with 确保文件关闭
+            sheet_names = xls.sheet_names
+            df = pd.read_excel(xls, sheet_name=sheet_names[1], skiprows=4)  # sheet_names[1] is Program Matrix
+        
+        df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
+        df['Group'] = df['Release(s)'].ffill()
 
+        block_start_indices = df.index[df['Release(s)'] == 'All (NPI 2024)'].tolist()
+
+        error_result_AV = []
+
+        for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
+            block = df.iloc[start:end]
+            
+            if 'av_price' in block.columns and 'sa_price' in block.columns:
+                total_av_price = block['av_price'].sum()
+                total_sa_price = block['sa_price'].sum()
+                total_different_price = total_av_price - total_sa_price
+
+                if abs(total_different_price) > 0.01:
+                    error_result_AV.append(block.iloc[0]['AV\nLevel 2'])
+
+        # 加载工作簿并突出显示错误的AV Level 2
+        wb = load_workbook(program_matrix_path)
+        ws = wb['Program Matrix']
+        fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")  # 黄色高亮
+
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value in error_result_AV:
+                    cell.fill = fill
+
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        wb.close()
+
+        # 将 BytesIO 指针重置到文件的开始
+        excel_buffer.seek(0)
+
+        # 返回内存中的 Excel 文件给用户
+        return send_file(
+            excel_buffer,
+            as_attachment=True,
+            download_name='program_matrix_highlight_color.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/hqm_based_component_check', methods=['GET'])
 def hqm_based_component_check():
@@ -320,19 +370,6 @@ def bom_based_component_check():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-def highlight_the_color(file_path, error_result_AV):
-    wb = load_workbook(file_path)
-    ws = wb['Program Matrix']
-    fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")  # Yellow color
-
-    for row in ws.iter_rows():
-        for cell in row:
-            if cell.value in error_result_AV:
-                cell.fill = fill
-
-    wb.save('program_matrix_highlight_color.xlsx')
 
 #Smith-Waterman algorithm計算文字相似度
 def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):  

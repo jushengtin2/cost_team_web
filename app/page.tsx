@@ -2,6 +2,7 @@ import '../styles/main.css';
 import Link from "next/link";
 import Button from '@mui/material/Button';
 
+
 export default function Home() {
   return (
     <div className='main_page'>
@@ -13,12 +14,12 @@ export default function Home() {
       <div className='function_zone1'>
         <div className='cost_sanity_check_zone'>
           <Button className='cost_sanity_check_btn'>
-            <Link href="/cost_sanity_check">Cost Sanity Check</Link>
+            <Link href="/cost_sanity_check">Notebook Cost Sanity Check</Link>
           </Button>
         </div>
         <div className='other_function1'>
           <Button className='cost_sanity_check_btn' >
-            <Link href="/cost_sanity_check">waited to dev</Link>
+            <Link href="/cost_sanity_check">Desktop Cost Sanity Check</Link>
           </Button>
         </div>
         <div className='other_function2'>

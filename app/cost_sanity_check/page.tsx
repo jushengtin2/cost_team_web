@@ -1,8 +1,11 @@
 "use client";
-
+import React from 'react';
 import Button from '@mui/material/Button';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './cost_sanity_check_page.css';
 import { useRef, useState } from 'react';
+import Link from "next/link";
+
 
 export default function CostSanityCheckPage() {
   const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
@@ -12,8 +15,10 @@ export default function CostSanityCheckPage() {
   const [mspekeFileName, setMspekeFileName] = useState<string>("");
   const [hardwareQualMatrixFileName, setHardwareQualMatrixFileName] = useState<string>("");
   const [downloadFileName, setDownloadFileName] = useState<string>('');
+  const [downloadFileName2, setDownloadFileName2] = useState<string>('');
   const [fileUrl, setFileUrl] = useState<string>('');
-  const [deleteMessage, setDeleteMessage] = useState<string>(''); // 新增的状态变量
+  const [fileUrl2, setFileUrl2] = useState<string>('');
+  const [deleteMessage, setDeleteMessage] = useState<string>(''); 
   const [uploadMessage, setUploadMessage] = useState<string>('');
 
 
@@ -35,7 +40,7 @@ export default function CostSanityCheckPage() {
     }
   };
  
-  const handleDelete = async () => {
+  const handleDelete = async () => {  //要多寫一個跳出頁面的話也要刪掉資料
     try {
         const response = await fetch('http://127.0.0.1:5000/delete', {
             method: 'POST',
@@ -46,9 +51,9 @@ export default function CostSanityCheckPage() {
         });
 
         if (response.ok) {
-            console.log("資料已成功刪除");
-            setDeleteMessage("資料已成功刪除"); // 设置成功消息
-            setUploadMessage("")
+            console.log("Delete successfully");
+            setDeleteMessage("Delete successfully");
+            setUploadMessage("");
             setProgramMatrixFileName("");
             setMspekeFileName("");
             setHardwareQualMatrixFileName("");
@@ -64,20 +69,20 @@ export default function CostSanityCheckPage() {
               hardwareQualMatrixFileInputRef.current.value = "";
             }
         } else {
-            console.error("刪除資料失敗");
-            setDeleteMessage("刪除資料失敗"); // 设置失败消息
+            console.error("Fail to delete");
+            setDeleteMessage("Fail to delete");
         }
     } catch (error) {
-        console.error("刪除過程中發生錯誤:", error);
-        setDeleteMessage("刪除過程中發生錯誤"); // 设置错误消息
+        console.error("Error to delete:", error);
+        setDeleteMessage("Error to delete");
     }
   };
 
 
   const handleUpload = async () => {
     if (!programMatrixFileInputRef.current.files[0] || !mspekeFileInputRef.current.files[0] || !hardwareQualMatrixFileInputRef.current.files[0]) {
-      console.error('文件未上傳');
-      setUploadMessage('文件未上傳');
+      console.error('Lack some files');
+      setUploadMessage('Lack some files');
       return;
   }
 
@@ -88,7 +93,6 @@ export default function CostSanityCheckPage() {
 
     try {
 
-
       const response = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
         mode: 'cors',
@@ -96,15 +100,15 @@ export default function CostSanityCheckPage() {
       });
 
       if (response.ok) {
-        console.log('檔案已成功上傳到後端');
-        setUploadMessage('上傳成功')
+        console.log('Upload successfully');
+        setUploadMessage('Upload successfully')
         
       } else {
-        console.error('檔案上傳失敗');
-        setUploadMessage('上傳失敗')
+        console.error('Fail to upload');
+        setUploadMessage('Fail to upload')
       }
     } catch (error) {
-      console.error('上傳過程中發生錯誤:', error);
+      console.error('error to upload', error);
     }
   };
 
@@ -119,7 +123,7 @@ export default function CostSanityCheckPage() {
         const blob = await response.blob(); //blob = binary big object
         const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
         setFileUrl(url); // 保存生成的 URL
-        setDownloadFileName('program_matrix_highlight_color.xlsx'); // 保存文件名
+        setDownloadFileName('BOM_cost_error.xlsx'); // 保存文件名
         console.log('CSV 文件已准备好下载');
       } else {
         console.error('无法获取 CSV 文件');
@@ -127,6 +131,26 @@ export default function CostSanityCheckPage() {
     } catch (error) {
       console.error('获取文件时发生错误:', error);
     }
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/bom_cost_check_for_highlight_file', {
+        method: 'GET',
+        mode: 'cors',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob(); //blob = binary big object
+        const url = window.URL.createObjectURL(blob);  //生成一個url來下載這個blob
+        setFileUrl2(url); // 保存生成的 URL
+        setDownloadFileName2('program_matrix_highlight_color.xlsx'); // 保存文件名
+        console.log('CSV 文件已准备好下载');
+      } else {
+        console.error('无法获取 CSV 文件');
+      }
+    } catch (error) {
+      console.error('获取文件时发生错误:', error);
+    }
+    
   };
 
   const handleDownload = () => {
@@ -138,6 +162,18 @@ export default function CostSanityCheckPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(fileUrl);
+      console.log('CSV 文件已下载');
+    }
+  };
+  const handleDownload2 = () => {
+    if (fileUrl) {
+      const a = document.createElement('a');
+      a.href = fileUrl2;
+      a.download = downloadFileName2;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(fileUrl2);
       console.log('CSV 文件已下载');
     }
   };
@@ -184,9 +220,15 @@ export default function CostSanityCheckPage() {
     }
   };
 
+  
+
   return (
     <div className='cost_sanity_check_page'>
       <div className='title_zone'>
+       <Link href="/" onClick={handleDelete} className="go_back_btn">
+        <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
+        Menu
+      </Link>
         <h1>Cost Sanity Check</h1>
       </div>
 
@@ -263,10 +305,13 @@ export default function CostSanityCheckPage() {
             </div>
             {downloadFileName && (
               <div className='download_zone'>
-                <p>File ready: {downloadFileName}</p>
-                <Button onClick={handleDownload}>
-                  Download {downloadFileName}
-                </Button>
+                <p><Button onClick={handleDownload}>
+                  {downloadFileName}
+                </Button></p>
+                <p><Button onClick={handleDownload2}>
+                  {downloadFileName2}
+                </Button></p>
+                
               </div>
             )}
           </div>
