@@ -22,22 +22,23 @@ file_names = {}  #存上傳的檔案 因為上傳的program matrix不會真的�
 def get_data():
     return jsonify({"message": "Hello from Flask!"})
 
-@app.route('/upload', methods=['POST'])    #這邊要多寫一個測試程式 看有沒有上傳正確的格式
+@app.route('/upload', methods=['POST'])
 def upload_file():
     global file_names
 
+    # 獲取上傳的文件
     program_matrix_file = request.files.get('programMatrixFile')
     mspeke_file = request.files.get('mspekeFile')
     hardware_qual_matrix_file = request.files.get('hardwareQualMatrixFile')
 
+    # 檢查是否缺少文件
     if not program_matrix_file or not mspeke_file or not hardware_qual_matrix_file:
         return jsonify({"error": "Missing file"}), 400
-
     program_matrix_path = os.path.join(UPLOAD_FOLDER, program_matrix_file.filename)
     mspeke_file_path = os.path.join(UPLOAD_FOLDER, mspeke_file.filename)
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, hardware_qual_matrix_file.filename)
 
-    program_matrix_file.save(program_matrix_path)
+    program_matrix_file.save(program_matrix_path)  # 如果檢查通過，保存文件
     mspeke_file.save(mspeke_file_path)
     hardware_qual_matrix_file.save(hardware_qual_matrix_path)
 
@@ -45,9 +46,61 @@ def upload_file():
     file_names['mspeke_file'] = mspeke_file.filename
     file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
 
-    print("已上傳了:", file_names)  # 確定有存到上傳的檔案
+    print('1')
+    try:
+        # 檢查 Program Matrix 文件
+        with pd.ExcelFile(program_matrix_file) as xls:
+            if 'Program Matrix' not in xls.sheet_names:
+                raise ValueError("Sheet 'Program Matrix' not found")
+            print('2')    
+            df = pd.read_excel(xls, sheet_name='Program Matrix', skiprows=4, usecols="A:I")
+            program_matrix_headers = list(df.columns)  # 檢查標題
 
-    return jsonify({"message": "已成功上傳跟保存"}), 200
+            expected_program_matrix_headers = [
+                'Category / Manufacturing Comments',
+                'Release(s)',
+                'Description',
+                'AV\nLevel 2',
+                'Unnamed: 4', 
+                'SA\nLevel 3',
+                'Unnamed: 6',  
+                'Component\nLevel 4',
+                'Unnamed: 8'  
+            ]
+
+            # 測試 2: 檢查標題是否匹配
+            if program_matrix_headers != expected_program_matrix_headers:
+                
+                raise ValueError("Headers in Program Matrix do not match the expected values.")
+            print('3')    
+        # 檢查 Mspeke 文件
+        with pd.ExcelFile(mspeke_file) as xls:
+            if 'HW' not in xls.sheet_names:
+                print('4')
+                raise ValueError("Sheet 'HW' not found")
+
+            df = pd.read_excel(xls, sheet_name='HW', skiprows=4)
+            mspeke_headers = list(df.columns)  # 檢查標題
+            if 'Feature Full Name' not in mspeke_headers or 'Notes' not in mspeke_headers:
+                
+                raise ValueError("'Feature Full Name' or 'Notes' not found in Mspeke headers")
+            print('5')    
+            print('ssqq4')
+        # 檢查 Hardware Qual Matrix 文件
+        with pd.ExcelFile(hardware_qual_matrix_file) as xls:
+            print('ssqq')
+            df = pd.read_excel(xls, skiprows=1)
+            hqm_headers = list(df.columns)  # 檢查標題
+            print(hqm_headers)
+            if 'HP Part No.' not in hqm_headers:
+                print('qq')
+                raise ValueError("'HP Part No.' not found in HQM headers")
+            print('6')
+        # 返回成功訊息
+        return jsonify({"message": "Files uploaded and validated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/delete', methods=['POST'])
@@ -202,10 +255,10 @@ def hqm_based_component_check():
 
             df_pm = pd.read_excel(pm, sheet_name=pm_sheet_names[1], skiprows=4)
             df_mspeke = pd.read_excel(mspeke, sheet_name=mspeke_sheet_names[1], skiprows=4)
-            df_hqm = pd.read_excel(hardware_qual_matrix_path, skiprows=1)
+            df_hqm = pd.read_excel(hardware_qual_matrix_path, skiprows=1, usecols=['HP Part No.', 'Qual Status'])
         
-        df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna()
-        df_hqm = df_hqm['HP Part No.'].dropna()
+        df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna(subset=[df_mspeke.columns[4]])
+        df_hqm = df_hqm.dropna(subset=['HP Part No.', 'Qual Status'])
 
         sections = {}
         current_label = None
@@ -221,8 +274,10 @@ def hqm_based_component_check():
         for label in sections:
             sections[label] = pd.DataFrame(sections[label])
 
-        for hqm_part_number in df_hqm:
-            result[hqm_part_number] = []
+        for index, hqm_row in df_hqm.iterrows():
+            hqm_part_number = hqm_row['HP Part No.']
+            hqm_qual_status = hqm_row['Qual Status']
+            result[hqm_part_number] = [hqm_qual_status]
             HAS_FOUNDED = False
             for key, value in sections.items():
                 if hqm_part_number in value['Component\nLevel 4'].values:
@@ -236,30 +291,31 @@ def hqm_based_component_check():
             if not HAS_FOUNDED:
                 result[hqm_part_number].append('Cannot find this component in Program Matrix')
 
+        #result存了 key:hqm part num, value: ['Qual Status', 'BOM qty, 'BOM desceiption']
         final_result = []
-
+        smith_waterman_THRESHOLD = 0
         for key, value in result.items():
             max_ratio = 0
             max_mspeke_item = None
-            if len(value) > 1:
+            if len(value) > 2: #代表同時有出現在hqm bom的
                 for idx, mspeke_item in df_mspeke.iterrows():
-                    ratio = smith_waterman(value[1], mspeke_item['Feature Full Name'])
+                    ratio = smith_waterman(value[2], mspeke_item['Feature Full Name'])
                     if max_ratio < ratio:
                         max_ratio = ratio
                         max_mspeke_item = mspeke_item
                 final_result.append([
-                    key, value[1], value[0], max_mspeke_item['Feature Full Name'], max_mspeke_item['Notes']
+                    key, value[0], value[2], value[1], max_mspeke_item['Feature Full Name'], max_mspeke_item['Notes']
                 ])
             else:
-                final_result.append([key, value[0]])
+                final_result.append([key, value[0], value[1]])
 
         wb = Workbook()
         ws = wb.active
         ws.title = 'HQM Based Component Check'
 
         ws.append([
-            'Component Part Number', 'Program Matrix Description', 'Program Matrix Qty',
-            'PM Description -> MSPEKE Description', 'PM Description -> MSPEKE Notes'
+            'Component Part Number',
+            'Qual Status', 'Program Matrix Description', 'Program Matrix Qty', 'BOM Description -> MSPEKE Description', 'BOM Description -> MSPEKE Notes'
         ])
 
         for row in final_result:
@@ -279,6 +335,7 @@ def hqm_based_component_check():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route('/bom_based_component_check', methods=['GET'])
@@ -416,5 +473,6 @@ def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):
             j -= 1
 
     return max_score
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
