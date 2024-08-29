@@ -4,10 +4,9 @@ import pandas as pd
 import numpy as np
 import os
 from io import BytesIO
-
 import shutil
 from openpyxl import load_workbook, Workbook
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Border, Side
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
@@ -249,85 +248,87 @@ def hqm_based_component_check():
         print(f"Error: {hardware_qual_matrix_path} 不存在")
     
     try:
-        with pd.ExcelFile(program_matrix_path) as pm, pd.ExcelFile(mspeke_path) as mspeke:
+        with pd.ExcelFile(program_matrix_path) as pm, pd.ExcelFile(mspeke_path) as mspeke, pd.ExcelFile(hardware_qual_matrix_path) as hqm:
             pm_sheet_names = pm.sheet_names
             mspeke_sheet_names = mspeke.sheet_names
 
             df_pm = pd.read_excel(pm, sheet_name=pm_sheet_names[1], skiprows=4)
             df_mspeke = pd.read_excel(mspeke, sheet_name=mspeke_sheet_names[1], skiprows=4)
-            df_hqm = pd.read_excel(hardware_qual_matrix_path, skiprows=1, usecols=['HP Part No.', 'Qual Status'])
-        
-        df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna(subset=[df_mspeke.columns[4]])
-        df_hqm = df_hqm.dropna(subset=['HP Part No.', 'Qual Status'])
+            df_hqm = pd.read_excel(hqm, skiprows=1, usecols=['ID','HP Part No.', 'Qual Status'])
 
-        sections = {}
-        current_label = None
-        result = {}
+            start_idx = df_pm[df_pm['Category / Manufacturing Comments'] == 'DIB Hardware'].index[0]
+            end_idx = df_pm[(df_pm.index > start_idx) & (df_pm['Category / Manufacturing Comments'].notna())].index[0]
 
-        for index, row in df_pm.iterrows():
-            if pd.notna(row['SA\nLevel 3']):
-                current_label = row['SA\nLevel 3']
-                sections[current_label] = []
-            if current_label:
-                sections[current_label].append(row)
+            df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
+            df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna(subset=[df_mspeke.columns[4]])
+            
+            sections = {}
+            current_label = None
 
-        for label in sections:
-            sections[label] = pd.DataFrame(sections[label])
+            for index, row in df_pm.iterrows():
+                if pd.notna(row['SA\nLevel 3']):
+                    current_label = row['SA\nLevel 3']
+                    sections[current_label] = []
+                if current_label:
+                    sections[current_label].append(row)
 
-        for index, hqm_row in df_hqm.iterrows():
-            hqm_part_number = hqm_row['HP Part No.']
-            hqm_qual_status = hqm_row['Qual Status']
-            result[hqm_part_number] = [hqm_qual_status]
-            HAS_FOUNDED = False
-            for key, value in sections.items():
-                if hqm_part_number in value['Component\nLevel 4'].values:
-                    HAS_FOUNDED = True
-                    component_value = value[value['Component\nLevel 4'] == hqm_part_number]
-                    component_description = component_value['Description'].values[0]
-                    component_qty = value.iloc[0]['Quantity']
+            for label in sections:
+                sections[label] = pd.DataFrame(sections[label])
 
-                    result[hqm_part_number].extend([component_qty, component_description])
+            df_hqm['BOM Description'] = None
+            df_hqm['MSPEKE Description'] = None
 
-            if not HAS_FOUNDED:
-                result[hqm_part_number].append('Cannot find this component in Program Matrix')
+            for index, row in df_hqm.iterrows():
+                if row['HP Part No.'] and row['Qual Status']:
+                    hqm_part_number = row['HP Part No.']
+                    hqm_qual_status = row['Qual Status']
+                    for key, value in sections.items():
+                        if hqm_part_number in value['Component\nLevel 4'].values:
+                            component_value = value[value['Component\nLevel 4'] == hqm_part_number]
+                            component_description = component_value['Description'].values[0]
+                            df_hqm.at[index, 'BOM Description'] = component_description
+                            
+                            max_ratio = 0
+                            max_mspeke_item = None
+                            for idx, mspeke_item in df_mspeke.iterrows():
+                                ratio = smith_waterman(component_description, mspeke_item['Feature Full Name'])
+                                if max_ratio < ratio:
+                                    max_ratio = ratio
+                                    max_mspeke_item = mspeke_item['Feature Full Name']
+                            df_hqm.at[index, 'MSPEKE Description'] = max_mspeke_item
+                            break
 
-        #result存了 key:hqm part num, value: ['Qual Status', 'BOM qty, 'BOM desceiption']
-        final_result = []
-        smith_waterman_THRESHOLD = 0
-        for key, value in result.items():
-            max_ratio = 0
-            max_mspeke_item = None
-            if len(value) > 2: #代表同時有出現在hqm bom的
-                for idx, mspeke_item in df_mspeke.iterrows():
-                    ratio = smith_waterman(value[2], mspeke_item['Feature Full Name'])
-                    if max_ratio < ratio:
-                        max_ratio = ratio
-                        max_mspeke_item = mspeke_item
-                final_result.append([
-                    key, value[0], value[2], value[1], max_mspeke_item['Feature Full Name'], max_mspeke_item['Notes']
-                ])
-            else:
-                final_result.append([key, value[0], value[1]])
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_hqm.to_excel(writer, index=False, sheet_name='Component Error List')
 
-        wb = Workbook()
-        ws = wb.active
-        ws.title = 'HQM Based Component Check'
+            # 獲取當前活頁簿和工作表
+            workbook = writer.book
+            worksheet = workbook.active
 
-        ws.append([
-            'Component Part Number',
-            'Qual Status', 'Program Matrix Description', 'Program Matrix Qty', 'BOM Description -> MSPEKE Description', 'BOM Description -> MSPEKE Notes'
-        ])
+            # 定義綠色和淺咖啡色填充樣式
+            green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
+            light_brown_fill = PatternFill(start_color="D3B58C", end_color="D3B58C", fill_type="solid")
 
-        for row in final_result:
-            ws.append(row)
+            # 遍歷 df_hqm 的每一行，根據條件設置顏色
+            for row_idx, row in enumerate(df_hqm.itertuples(), start=2):  # 開始於第2行（Excel中的行從1開始）
+                if pd.isna(row._2):  # '_2' 對應的是 'HP Part No.' 列
+                    if pd.notna(row.ID) and not any(char.isdigit() for char in str(row.ID)):
+                        # ID 欄位沒有數字時，設置綠色
+                        for col_idx in range(1, len(df_hqm.columns) + 1):
+                            cell = worksheet.cell(row=row_idx, column=col_idx)
+                            cell.fill = green_fill
+                    else:
+                        # ID 欄位包含數字時，設置淺咖啡色
+                        for col_idx in range(1, len(df_hqm.columns) + 1):
+                            cell = worksheet.cell(row=row_idx, column=col_idx)
+                            cell.fill = light_brown_fill
 
-        excel_buffer = BytesIO()
-        wb.save(excel_buffer)
-        excel_buffer.seek(0)
-        wb.close()
+        output.seek(0)
 
+        # 返回文件作為下載
         return send_file(
-            excel_buffer,
+            output,
             as_attachment=True,
             download_name='HQM_Based_component_error_list.xlsx',
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -347,76 +348,114 @@ def bom_based_component_check():
 
     if not (os.path.exists(program_matrix_path) and os.path.exists(mspeke_path) and os.path.exists(hardware_qual_matrix_path)):
         return jsonify({"error": "One or more files are missing. Please upload the files first."}), 400
-
+    
     try:
-        with pd.ExcelFile(program_matrix_path) as pm, pd.ExcelFile(mspeke_path) as mspeke:
+        # 讀取 Excel 文件
+        with pd.ExcelFile(program_matrix_path) as pm, pd.ExcelFile(mspeke_path) as mspeke, pd.ExcelFile(hardware_qual_matrix_path) as hqm:
             pm_sheet_names = pm.sheet_names
             mspeke_sheet_names = mspeke.sheet_names
 
             df_pm = pd.read_excel(pm, sheet_name=pm_sheet_names[1], skiprows=4)
             df_mspeke = pd.read_excel(mspeke, sheet_name=mspeke_sheet_names[1], skiprows=4)
-            df_hqm = pd.read_excel(hardware_qual_matrix_path, skiprows=1)
+            df_hqm = pd.read_excel(hqm, skiprows=1)
 
-        start_idx = df_pm[df_pm['Category / Manufacturing Comments'] == 'DIB Hardware'].index[0]
-        end_idx = df_pm[(df_pm.index > start_idx) & (df_pm['Category / Manufacturing Comments'].notna())].index[0]
-        df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
+            # 清理和準備數據
+            start_idx = df_pm[df_pm['Category / Manufacturing Comments'] == 'DIB Hardware'].index[0]  # 去除DIB部分
+            end_idx = df_pm[(df_pm.index > start_idx) & (df_pm['Category / Manufacturing Comments'].notna())].index[0]
 
-        df_mspeke = df_mspeke[['Feature\nID', 'Feature Full Name', 'Notes']].dropna(subset=['Notes'])
-        df_hqm = df_hqm['HP Part No.'].dropna()
+            df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
+            df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
+            df_hqm = df_hqm[['HP Part No.', 'Qual Status']].dropna(subset=['HP Part No.'])
+            hqm_dict = df_hqm.set_index('HP Part No.')['Qual Status'].to_dict()
 
-        sections = {}
-        not_in_hqm_list = []
-        result = {}
+            # 創建新列來存儲結果
+            df_pm['Max_MSPEKE_Item'] = None
+            df_pm['Max_MSPEKE_Item_Note'] = None
+            df_pm['HQM status'] = None
 
-        current_label = None
-        for index, row in df_pm.iterrows():
-            if pd.notna(row['SA\nLevel 3']):
-                current_label = row['SA\nLevel 3']
-                sections[current_label] = []
-            if current_label:
-                sections[current_label].append(row)
-
-        for label in sections:
-            sections[label] = pd.DataFrame(sections[label])
-
-        for key, value in sections.items():
-            for _, row in value.iterrows():
+            for index, row in df_pm.iterrows():
                 if pd.notna(row['Component\nLevel 4']):
-                    if row['Component\nLevel 4'] not in df_hqm.values:
-                        not_in_hqm_list.append(row['Component\nLevel 4'])
+                    cmp_level4 = row['Description']
+                    if 'lbl' not in cmp_level4.lower() and 'doc' not in cmp_level4.lower() and 'icon' not in cmp_level4.lower(): #把不需要對照的刪掉
+                        max_ratio = 0
+                        max_mspeke_item = None
+                        max_mspeke_item_note = None
 
-                    max_ratio = 0
-                    max_mspeke_item = None
-                    max_mspeke_item_note = None
-                    for _, item in df_mspeke.iterrows():
-                        if pd.notna(item['Feature Full Name']):
-                            ratio = smith_waterman(row['Description'], item['Feature Full Name'])
+                        for _, item in df_mspeke.iterrows():
+                            ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
                             if ratio > max_ratio:
                                 max_ratio = ratio
                                 max_mspeke_item = item['Feature Full Name']
                                 max_mspeke_item_note = item['Notes']
+                            
 
-                    result[row['Component\nLevel 4']] = [
-                        row['Description'],
-                        max_mspeke_item,
-                        value.iloc[0]['Quantity'],
-                        max_mspeke_item_note
-                    ]
+                        # 插入結果到對應的行
+                        df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
+                        df_pm.at[index, 'Max_MSPEKE_Item_Note'] = max_mspeke_item_note
+                        print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
 
-        wb = Workbook()
-        ws = wb.active
-        ws.title = 'BOM Based Component Check'
-
-        ws.append(['BOM Component', 'BOM Description', 'MSPEKE Description', 'BOM Qty', 'MSPEKE Notes', 'Hardqualmatrix Check'])
-
-        for key, values in result.items():
-            check_value = 'Not in Hardware Qual Matrix' if key in not_in_hqm_list else ''
-            ws.append([key] + values + [check_value])
+                        if row['Component\nLevel 4'] not in hqm_dict:
+                            df_pm.at[index, 'HQM status'] = 'Not in Hardware Qual Matrix'
+                        else:
+                            qual_status_value = hqm_dict[row['Component\nLevel 4']]
+                            df_pm.at[index, 'HQM status'] = qual_status_value
 
         output = BytesIO()
-        wb.save(output)
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_pm.to_excel(writer, index=False, sheet_name='BOM Based Component Check')
+
+            # 獲取工作表
+            worksheet = writer.sheets['BOM Based Component Check']
+
+            # 定義顏色
+            pink_fill = PatternFill(start_color="FFC0CB", end_color="FFC0CB", fill_type="solid")
+            yellow_fill = PatternFill(start_color="FFFFE0", end_color="FFFFE0", fill_type="solid")
+            blue_fill = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")  # 藍色填充
+            header_yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")  # 標題黃色填充
+
+            # 定義邊框樣式
+            thin_border = Border(left=Side(style='thin'),
+                                 right=Side(style='thin'),
+                                 top=Side(style='thin'),
+                                 bottom=Side(style='thin'))
+
+            # 使用列名來填充顏色
+            max_mspeke_item_col = df_pm.columns.get_loc('Max_MSPEKE_Item') + 1  # +1 是因為 openpyxl 列索引從 1 開始
+            max_mspeke_item_note_col = df_pm.columns.get_loc('Max_MSPEKE_Item_Note') + 1
+            hqm_status_col = df_pm.columns.get_loc('HQM status') + 1
+
+            # 先將不包含特定列的標題行（第一行）塗上黃色
+            for col_idx in range(1, worksheet.max_column + 1):
+                if col_idx not in [max_mspeke_item_col, max_mspeke_item_note_col, hqm_status_col]:
+                    cell = worksheet.cell(row=1, column=col_idx)
+                    cell.fill = header_yellow_fill
+                    cell.border = thin_border
+
+            # 塗上藍色
+            for row_idx in range(2, worksheet.max_row + 1):  # 從第2行開始（跳過標題行）
+                category_comments = worksheet.cell(row=row_idx, column=df_pm.columns.get_loc('Category / Manufacturing Comments') + 1).value
+                release_s = worksheet.cell(row=row_idx, column=df_pm.columns.get_loc('Release(s)') + 1).value
+                description = worksheet.cell(row=row_idx, column=df_pm.columns.get_loc('Description') + 1).value
+
+                if category_comments and (release_s is None or release_s == '') and (description is None or description == ''):
+                    for col_idx in range(1, worksheet.max_column + 1):
+                        cell = worksheet.cell(row=row_idx, column=col_idx)
+                        cell.fill = blue_fill
+                        cell.border = thin_border
+            # 塗上粉紅色和黃色並保持邊框
+            for cell in worksheet[worksheet.cell(row=1, column=max_mspeke_item_col).column_letter]:
+                cell.fill = pink_fill
+                cell.border = thin_border
+
+            for cell in worksheet[worksheet.cell(row=1, column=max_mspeke_item_note_col).column_letter]:
+                cell.fill = pink_fill
+                cell.border = thin_border
+
+            for cell in worksheet[worksheet.cell(row=1, column=hqm_status_col).column_letter]:
+                cell.fill = yellow_fill
+                cell.border = thin_border
+
         output.seek(0)
-        wb.close()
 
         return send_file(
             output,
@@ -427,6 +466,8 @@ def bom_based_component_check():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    
 
 #Smith-Waterman algorithm計算文字相似度
 def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):  
@@ -473,6 +514,9 @@ def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):
             j -= 1
 
     return max_score
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
