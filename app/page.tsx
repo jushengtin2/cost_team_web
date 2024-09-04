@@ -14,12 +14,12 @@ export default function Home() {
       <div className='function_zone1'>
         <div className='cost_sanity_check_zone'>
           <Button className='cost_sanity_check_btn'>
-            <Link href="/cost_sanity_check">Notebook Cost Sanity Check</Link>
+            <Link href="/NB_cost_sanity_check">Notebook Cost Sanity Check</Link>
           </Button>
         </div>
         <div className='other_function1'>
           <Button className='cost_sanity_check_btn' >
-            <Link href="/cost_sanity_check">Desktop Cost Sanity Check</Link>
+            <Link href="/DT_cost_sanity_check">Desktop Cost Sanity Check</Link>
           </Button>
         </div>
         <div className='other_function2'>

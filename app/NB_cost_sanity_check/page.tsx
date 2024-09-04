@@ -3,12 +3,12 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import './cost_sanity_check_page.css';
+import './NB_cost_sanity_check_page.css';
 import { useRef, useState } from 'react';
 import Link from "next/link";
 
 
-export default function CostSanityCheckPage() {
+export default function NB_CostSanityCheckPage() {
   const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
   const mspekeFileInputRef = useRef<HTMLInputElement>(null);
   const hardwareQualMatrixFileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +44,7 @@ export default function CostSanityCheckPage() {
  
   const handleDelete = async () => {  //要多寫一個跳出頁面的話也要刪掉資料
     try {
-        const response = await fetch('http://127.0.0.1:5000/delete', {
+        const response = await fetch('http://127.0.0.1:5000/NB_delete', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -97,7 +97,7 @@ export default function CostSanityCheckPage() {
 
     try {
 
-      const response = await fetch('http://127.0.0.1:5000/upload', {
+      const response = await fetch('http://127.0.0.1:5000/NB_upload', {
         method: 'POST',
         mode: 'cors',
         body: formData,
@@ -122,7 +122,7 @@ export default function CostSanityCheckPage() {
     setDownloadFileName('');
     setDownloadFileName2('');
     try {
-      const response = await fetch('http://127.0.0.1:5000/bom_cost_check', {
+      const response = await fetch('http://127.0.0.1:5000/NB_bom_cost_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -141,7 +141,7 @@ export default function CostSanityCheckPage() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/bom_cost_check_for_highlight_file', {
+      const response = await fetch('http://127.0.0.1:5000/NB_bom_cost_check_for_highlight_file', {
         method: 'GET',
         mode: 'cors',
       });
@@ -193,7 +193,7 @@ export default function CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:5000/hqm_based_component_check', {
+      const response = await fetch('http://127.0.0.1:5000/NB_hqm_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -219,7 +219,7 @@ export default function CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:5000/bom_based_component_check', {
+      const response = await fetch('http://127.0.0.1:5000/NB_bom_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -250,7 +250,7 @@ export default function CostSanityCheckPage() {
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
         Menu
       </Link>
-        <h1>Cost Sanity Check</h1>
+        <h1>NB Cost Sanity Check</h1>
       </div>
 
       <div className='function_zone'>

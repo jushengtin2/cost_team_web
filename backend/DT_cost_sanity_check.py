@@ -21,7 +21,7 @@ file_names = {}  #存上傳的檔案 因為上傳的program matrix不會真的�
 def get_data():
     return jsonify({"message": "Hello from Flask!"})
 
-@app.route('/upload', methods=['POST'])
+@app.route('/DT_upload', methods=['POST'])
 def upload_file():
     global file_names
 
@@ -45,16 +45,9 @@ def upload_file():
     file_names['mspeke_file'] = mspeke_file.filename
     file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
 
-    print('1')
     try:
-        # 檢查 Program Matrix 文件
+        #檢查 Program Matrix 文件
         with pd.ExcelFile(program_matrix_file) as xls:
-            if 'Program Matrix' not in xls.sheet_names:
-                raise ValueError("Sheet 'Program Matrix' not found")
-            print('2')    
-            df = pd.read_excel(xls, sheet_name='Program Matrix', skiprows=4, usecols="A:I")
-            program_matrix_headers = list(df.columns)  # 檢查標題
-
             expected_program_matrix_headers = [
                 'Category / Manufacturing Comments',
                 'Release(s)',
@@ -66,12 +59,17 @@ def upload_file():
                 'Component\nLevel 4',
                 'Unnamed: 8'  
             ]
+            #DT有四個sheet每個都要看是不是格式正確
+            for sheet_name in xls.sheet_names:
+                print(f'Processing sheet: {sheet_name}')    
+                df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=4, usecols="A:I") #我設定是檢查前A到Icolumn標題就好
+                program_matrix_headers = list(df.columns)  
 
-            # 測試 2: 檢查標題是否匹配
-            if program_matrix_headers != expected_program_matrix_headers:
-                
-                raise ValueError("Headers in Program Matrix do not match the expected values.")
-            print('3')    
+                # 測試 2: 檢查標題是否匹配
+                if program_matrix_headers != expected_program_matrix_headers:
+                    raise ValueError(f"Headers in sheet '{sheet_name}' do not match the expected values.")
+                print('Headers match expected values.') 
+
         # 檢查 Mspeke 文件
         with pd.ExcelFile(mspeke_file) as xls:
             if 'HW' not in xls.sheet_names:
@@ -102,7 +100,7 @@ def upload_file():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/delete', methods=['POST'])
+@app.route('/DT_delete', methods=['POST'])
 def delete_folder():
     try:
         if os.path.exists(UPLOAD_FOLDER):
@@ -115,7 +113,7 @@ def delete_folder():
     except Exception as e:
         return jsonify({"error": f"刪除資料夾過程中發生錯誤: {str(e)}"}), 500
 
-@app.route('/bom_cost_check', methods=['GET'])   #目前是回傳只有價格不同的列表 不是有highlight color的
+@app.route('/DT_bom_cost_check', methods=['GET'])
 def bom_cost_check():
     
     program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
@@ -124,43 +122,49 @@ def bom_cost_check():
         return jsonify({"error": "The program matrix file is missing. Please upload the file first."}), 400
 
     try:
-        with pd.ExcelFile(program_matrix_path) as xls:      #使用 with 語句確保文件被關閉!!!! 因為如果不是用with檔案就會一直讓檔案是被操作狀態 會導致之後要按delete時出現 E-busy error
+        with pd.ExcelFile(program_matrix_path) as xls:
             sheet_names = xls.sheet_names
-            df = pd.read_excel(xls, sheet_name=sheet_names[1], skiprows=4)  # sheet_names[1] is Program Matrix
-        
-        df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
-        df['Group'] = df['Release(s)'].ffill()
-
-        block_start_indices = df.index[df['Release(s)'] == 'All (NPI 2024)'].tolist()
-
-        error_result = []
-
-        for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
-            block = df.iloc[start:end]
             
-            if 'av_price' in block.columns and 'sa_price' in block.columns:
-                total_av_price = block['av_price'].sum()
-                total_sa_price = block['sa_price'].sum()
-                total_different_price = total_av_price - total_sa_price
+            # 創建一個新的工作簿來存儲每個工作表的結果
+            wb = Workbook()
+            ws = wb.active
+            ws.title = 'BOM Cost Check'  # 為第一個工作表命名
+            
+            for i, sheet_name in enumerate(sheet_names):
+                df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=4)
+                df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
+                df['Group'] = df['Release(s)'].ffill()
 
-                if abs(total_different_price) > 0.01:
-                    error_result.append([block.iloc[0]['AV\nLevel 2'], block.iloc[0]['Description'], total_av_price, total_sa_price, total_different_price])
+                block_start_indices = df.index[df['Release(s)'].notna()].tolist()
+                error_result = []
+
+                for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
+                    block = df.iloc[start:end]
                     
-        
-        wb = Workbook() #創建工作簿並將結果寫入到指定的工作表中
-        ws = wb.active
-        ws.title = 'BOM Cost Check'
+                    if 'av_price' in block.columns and 'sa_price' in block.columns:
+                        total_av_price = block['av_price'].sum()
+                        total_sa_price = block['sa_price'].sum()
+                        total_different_price = total_av_price - total_sa_price
 
-        ws.append(['AV Level 2', 'Description', 'Total AV Price', 'Total SA Price', 'Price Difference'])    #寫入header
+                        if abs(total_different_price) > 0.01:
+                            error_result.append([block.iloc[0]['AV\nLevel 2'], block.iloc[0]['Description'], total_av_price, total_sa_price, total_different_price])
+                
+                # 新增一個工作表來存儲當前 sheet 的結果
+                if i == 0:
+                    ws = wb.active  # First sheet is already created, just use it
+                else:
+                    ws = wb.create_sheet(title=f'Sheet {i+1}')
+                
+                # 寫入結果到工作表
+                ws.append(['AV Level 2', 'Description', 'Total AV Price', 'Total SA Price', 'Price Difference'])
+                for row in error_result:
+                    ws.append(row)
 
-        for row in error_result:    #寫入數據
-            ws.append(row)
-
-        
-        excel_buffer = BytesIO()    #保存工作簿到BytesIO對象
+        # 將工作簿保存到 BytesIO 對象
+        excel_buffer = BytesIO()
         wb.save(excel_buffer)
         excel_buffer.seek(0)
-        wb.close()                  #確保工作簿已關閉
+        wb.close()
 
         return send_file(
             excel_buffer,
@@ -172,7 +176,7 @@ def bom_cost_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/bom_cost_check_for_highlight_file', methods=['GET'])
+@app.route('/DT_bom_cost_check_for_highlight_file', methods=['GET'])
 def bom_cost_check_for_highlight_file():
     
     program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
@@ -181,37 +185,69 @@ def bom_cost_check_for_highlight_file():
         return jsonify({"error": "The program matrix file is missing. Please upload the file first."}), 400
 
     try:
-        with pd.ExcelFile(program_matrix_path) as xls:  # 使用 with 确保文件关闭
+        error_results = {}  #存每個sheet的結果
+
+        with pd.ExcelFile(program_matrix_path) as xls:
             sheet_names = xls.sheet_names
-            df = pd.read_excel(xls, sheet_name=sheet_names[1], skiprows=4)  # sheet_names[1] is Program Matrix
-        
-        df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
-        df['Group'] = df['Release(s)'].ffill()
 
-        block_start_indices = df.index[df['Release(s)'] == 'All (NPI 2024)'].tolist()
+            for sheet_name in sheet_names:
+                df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=4)
+                df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
+                df['Group'] = df['Release(s)'].ffill()
 
-        error_result_AV = []
+                block_start_indices = df.index[df['Release(s)'].notna()].tolist()
 
-        for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
-            block = df.iloc[start:end]
-            
-            if 'av_price' in block.columns and 'sa_price' in block.columns:
-                total_av_price = block['av_price'].sum()
-                total_sa_price = block['sa_price'].sum()
-                total_different_price = total_av_price - total_sa_price
+                error_result_AV = []
 
-                if abs(total_different_price) > 0.01:
-                    error_result_AV.append(block.iloc[0]['AV\nLevel 2'])
+                for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
+                    block = df.iloc[start:end]
+                    
+                    if 'av_price' in block.columns and 'sa_price' in block.columns:
+                        total_av_price = block['av_price'].sum()
+                        total_sa_price = block['sa_price'].sum()
+                        total_different_price = total_av_price - total_sa_price
 
-        # 加载工作簿并突出显示错误的AV Level 2
-        wb = load_workbook(program_matrix_path)
-        ws = wb['Program Matrix']
-        fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")  # 黄色高亮
+                        if abs(total_different_price) > 0.01:
+                            error_result_AV.append(block.iloc[0]['AV\nLevel 2'])
+                
+                error_results[sheet_name] = error_result_AV
 
-        for row in ws.iter_rows():
-            for cell in row:
-                if cell.value in error_result_AV:
-                    cell.fill = fill
+        wb = Workbook()
+        fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")  # 黄色
+
+        for sheet_name, errors in error_results.items():
+            ws = wb.create_sheet(title=f'{sheet_name} Errors')
+            ws.append(['AV Level 2', 'Description', 'Total AV Price', 'Total SA Price', 'Price Difference'])
+
+            df = pd.read_excel(program_matrix_path, sheet_name=sheet_name, skiprows=4)
+            df.rename(columns={'Unnamed: 4': 'av_price', 'Unnamed: 6': 'sa_price'}, inplace=True)
+            df['Group'] = df['Release(s)'].ffill()
+
+            block_start_indices = df.index[df['Release(s)'].notna()].tolist()
+
+            for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
+                block = df.iloc[start:end]
+                
+                if 'av_price' in block.columns and 'sa_price' in block.columns:
+                    total_av_price = block['av_price'].sum()
+                    total_sa_price = block['sa_price'].sum()
+                    total_different_price = total_av_price - total_sa_price
+
+                    if abs(total_different_price) > 0.01:
+                        av_level_2 = block.iloc[0]['AV\nLevel 2']
+                        row_data = [av_level_2, block.iloc[0]['Description'], total_av_price, total_sa_price, total_different_price]
+                        ws.append(row_data)
+
+                        # highlight error的 AV Level 2
+                        for row in ws.iter_rows(min_row=2, max_col=1):  #從第二row開始因為第一row是標題
+                            for cell in row:
+                                if cell.value == av_level_2:
+                                    cell.fill = fill
+
+        # 移除默认生成的空白工作表
+        if 'Sheet' in wb.sheetnames:
+            std = wb['Sheet']
+            wb.remove(std)
 
         excel_buffer = BytesIO()
         wb.save(excel_buffer)
@@ -220,7 +256,6 @@ def bom_cost_check_for_highlight_file():
         # 将 BytesIO 指针重置到文件的开始
         excel_buffer.seek(0)
 
-        # 返回内存中的 Excel 文件给用户
         return send_file(
             excel_buffer,
             as_attachment=True,
@@ -231,7 +266,7 @@ def bom_cost_check_for_highlight_file():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/hqm_based_component_check', methods=['GET'])
+@app.route('/DT_hqm_based_component_check', methods=['GET'])
 def hqm_based_component_check():
     global file_names
     
@@ -339,7 +374,7 @@ def hqm_based_component_check():
 
 
 
-@app.route('/bom_based_component_check', methods=['GET'])
+@app.route('/DT_bom_based_component_check', methods=['GET'])
 def bom_based_component_check():
     global file_names
     program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
