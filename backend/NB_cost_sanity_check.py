@@ -8,11 +8,14 @@ import shutil
 import openpyxl
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Border, Side
-
+import re
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
+CORS(app, resources={r"/*": {"origins": "http://15.38.109.23:3000"}})  #測試點
 
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 50 MB
 UPLOAD_FOLDER = './uploads'
+
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -473,7 +476,7 @@ def bom_based_component_check():
             end_idx = df_pm[(df_pm.index > start_idx) & (df_pm['Category / Manufacturing Comments'].notna())].index[0]
 
             df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
-            df_mspeke = df_mspeke.iloc[:, [1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
+            df_mspeke = df_mspeke.iloc[:, [0,1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
             df_hqm = df_hqm[['HP Part No.', 'Qual Status']].dropna(subset=['HP Part No.'])
             hqm_dict = df_hqm.set_index('HP Part No.')['Qual Status'].to_dict()
 
@@ -481,7 +484,7 @@ def bom_based_component_check():
             df_pm['Max_MSPEKE_Item'] = None
             df_pm['Max_MSPEKE_Item_Note'] = None
             df_pm['HQM status'] = None
-
+            print('1')
             for index, row in df_pm.iterrows():
                 if pd.notna(row['Component\nLevel 4']):
                     cmp_level4 = row['Description']
@@ -490,13 +493,33 @@ def bom_based_component_check():
                         max_mspeke_item = None
                         max_mspeke_item_note = None
 
-                        for _, item in df_mspeke.iterrows():
-                            ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
-                            if ratio > max_ratio:
-                                max_ratio = ratio
-                                max_mspeke_item = item['Feature Full Name']
-                                max_mspeke_item_note = item['Notes']
-                            
+                        cmp_level4_array = [item.strip() for item in re.split(r'[,\s]+', cmp_level4) if item]
+                        if 'IC' in cmp_level4_array:
+                            for _, item in df_mspeke.iterrows():
+                                if item['Feature Category'] == 'IC / Sensory / Controller' or item['Feature Category'] == 'Processor':
+                                    cmpji3_level4_numbers = re.findall(r'\d+', cmp_level4)
+                                    cmp_level4_numbers_str = ''.join(cmpji3_level4_numbers)
+                                    ratio = smith_waterman(cmp_level4_numbers_str, item['Feature Full Name']) #我發現IC如果只取數字來比可能會比較好
+                                    if ratio > max_ratio:
+                                        max_ratio = ratio
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                        elif 'CONN' in cmp_level4_array or 'CON' in cmp_level4_array or 'CN' in cmp_level4_array:
+                            for _, item in df_mspeke.iterrows():
+                                if item['Feature Category'] == 'Connectors':
+                                    ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
+                                    if ratio > max_ratio:
+                                        max_ratio = ratio
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                        else:
+                            for _, item in df_mspeke.iterrows():
+                                ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
+                                if ratio > max_ratio:
+                                    max_ratio = ratio
+                                    max_mspeke_item = item['Feature Full Name']
+                                    max_mspeke_item_note = item['Notes']
+                    
 
                         # 插入結果到對應的行
                         df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
@@ -508,7 +531,7 @@ def bom_based_component_check():
                         else:
                             qual_status_value = hqm_dict[row['Component\nLevel 4']]
                             df_pm.at[index, 'HQM status'] = qual_status_value
-
+        print('2')
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_pm.to_excel(writer, index=False, sheet_name='BOM Based Component Check')
@@ -628,4 +651,4 @@ def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True,host='0.0.0.0', port=8080)

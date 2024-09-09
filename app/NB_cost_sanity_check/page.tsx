@@ -44,7 +44,7 @@ export default function NB_CostSanityCheckPage() {
  
   const handleDelete = async () => {  //要多寫一個跳出頁面的話也要刪掉資料
     try {
-        const response = await fetch('http://127.0.0.1:5000/NB_delete', {
+        const response = await fetch('http://127.0.0.1:8080/NB_delete', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -96,8 +96,8 @@ export default function NB_CostSanityCheckPage() {
     
 
     try {
-
-      const response = await fetch('http://127.0.0.1:5000/NB_upload', {
+ 
+      const response = await fetch('http://15.38.109.23:8080/NB_upload', { //測試點
         method: 'POST',
         mode: 'cors',
         body: formData,
@@ -122,7 +122,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName('');
     setDownloadFileName2('');
     try {
-      const response = await fetch('http://127.0.0.1:5000/NB_bom_cost_check', {
+      const response = await fetch('http://127.0.0.1:8080/NB_bom_cost_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -141,7 +141,7 @@ export default function NB_CostSanityCheckPage() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/NB_bom_cost_check_for_highlight_file', {
+      const response = await fetch('http://127.0.0.1:8080/NB_bom_cost_check_for_highlight_file', {
         method: 'GET',
         mode: 'cors',
       });
@@ -193,7 +193,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:5000/NB_hqm_based_component_check', {
+      const response = await fetch('http://127.0.0.1:8080/NB_hqm_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -219,7 +219,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:5000/NB_bom_based_component_check', {
+      const response = await fetch('http://127.0.0.1:8080/NB_bom_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
