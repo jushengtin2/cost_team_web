@@ -11,7 +11,7 @@ from openpyxl.styles import PatternFill, Border, Side
 import re
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
-CORS(app, resources={r"/*": {"origins": "http://15.38.111.74:3000"}})  #測試點
+CORS(app, resources={r"/*": {"origins": "http://taiwan-cost-team"}})  #測試點
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 50 MB
 UPLOAD_FOLDER = './uploads'
