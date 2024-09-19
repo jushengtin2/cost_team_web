@@ -11,7 +11,7 @@
     box-sizing: border-box;
   }
 
-  .title_zone {
+  .DT_cost_sanity_check_title_zone {
     flex: 0 0 20%;
     display: flex;
     justify-content: center;

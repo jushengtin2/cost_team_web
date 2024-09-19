@@ -15,7 +15,7 @@ export default function Home() {
       </div>
 
       <div className='function_zone1'>
-      <Link href="/NB_cost_sanity_check" className='cost_sanity_check_zone'>
+        <Link href="/NB_cost_sanity_check" className='cost_sanity_check_zone'>
           <Button className='cost_sanity_check_btn'>
             Notebook Cost Sanity Check
           </Button>

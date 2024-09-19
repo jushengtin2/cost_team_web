@@ -9,6 +9,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    outline: 6px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
+    outline-offset: -15px; /* 設置 outline 與邊框之間的距離，使其內縮 */
   }
   
   /* title_zone 佔滿 10% 的高度 */
@@ -23,6 +25,7 @@
     color: black;
     font-weight: 400;
     background-color: #EBDEBE;
+    
   }
   
   /* function_zone 佔滿 45% 的高度 */
@@ -34,6 +37,7 @@
     justify-content: space-between; /* 使項目之間的間距相等 */
     align-items: center; /* 垂直方向上居中對齊 */
     background-color: #EBDEBE;
+    
   }
   
   /* 統一設置 cost_sanity_check_zone 和其他功能區的樣式 */
@@ -55,13 +59,15 @@
   .other_function3_btn, .other_function4_btn,
   .other_function5_btn {
     background-color: #b0aeae;
-    border-radius: 70px;
+    border-radius: 40px;
     width: 80%;
     height: 60%;
     font-family: 'Jockey One';
     font-size: 2.5em;
     color: black;
     font-weight: 500;
+    outline: 4px solid #000000; /* 使用 outline 來設置有顏色的邊框 */
+    outline-offset: -2px; /* 設置 outline 與邊框之間的距離，使其內縮 */
     
   }
   
