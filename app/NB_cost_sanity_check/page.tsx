@@ -44,7 +44,7 @@ export default function NB_CostSanityCheckPage() {
  
   const handleDelete = async () => {  //要多寫一個跳出頁面的話也要刪掉資料
     try {
-        const response = await fetch('http://127.0.0.1:8080/NB_delete', {
+        const response = await fetch('http://15.38.111.74:8080/NB_delete', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -94,10 +94,10 @@ export default function NB_CostSanityCheckPage() {
     formData.append('mspekeFile', mspekeFileInputRef.current.files[0]);
     formData.append('hardwareQualMatrixFile', hardwareQualMatrixFileInputRef.current.files[0]);
     
-
+ 
     try {
  
-      const response = await fetch('http://15.38.109.23:8080/NB_upload', { //測試點
+      const response = await fetch('http://15.38.111.74:8080/NB_upload', { //測試點
         method: 'POST',
         mode: 'cors',
         body: formData,
@@ -122,7 +122,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName('');
     setDownloadFileName2('');
     try {
-      const response = await fetch('http://127.0.0.1:8080/NB_bom_cost_check', {
+      const response = await fetch('http://15.38.111.74:8080/NB_bom_cost_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -141,7 +141,7 @@ export default function NB_CostSanityCheckPage() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8080/NB_bom_cost_check_for_highlight_file', {
+      const response = await fetch('http://15.38.111.74:8080/NB_bom_cost_check_for_highlight_file', {
         method: 'GET',
         mode: 'cors',
       });
@@ -155,7 +155,7 @@ export default function NB_CostSanityCheckPage() {
       } else {
         console.error('无法获取 CSV 文件');
       }
-    } catch (error) {
+    } catch (error) {  
       console.error('获取文件时发生错误:', error);
     }finally {
       setLoading(false); // 隱藏旋轉動畫
@@ -193,7 +193,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:8080/NB_hqm_based_component_check', {
+      const response = await fetch('http://15.38.111.74:8080/NB_hqm_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -219,7 +219,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:8080/NB_bom_based_component_check', {
+      const response = await fetch('http://15.38.111.74:8080/NB_bom_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });
@@ -245,6 +245,9 @@ export default function NB_CostSanityCheckPage() {
 
   return (
     <div className='cost_sanity_check_page'>
+      <title>NB Cost Sanity Check</title>
+      
+
       <div className='title_zone'>
        <Link href="/" onClick={handleDelete} className="go_back_btn">
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />

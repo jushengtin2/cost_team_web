@@ -11,11 +11,13 @@ from openpyxl.styles import PatternFill, Border, Side
 import re
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
-CORS(app, resources={r"/*": {"origins": "http://15.38.109.23:3000"}})  #測試點
-
+CORS(app, resources={r"/*": {"origins": "http://taiwan-cost-team"}})  #測試點
+CORS(app, resources={r"/*": {"origins": "http://taiwan-cost-team.auth.hpicorp.net"}})  #測試點
+CORS(app, resources={r"/*": {"origins": "http://15.38.111.74:3000"}})  #測試點
+CORS(app, resources={r"/*": {"origins": "http://15.38.111.74"}})  #測試點
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 50 MB
 UPLOAD_FOLDER = './uploads'
-
+ 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -40,6 +42,8 @@ def upload_file():
     program_matrix_path = os.path.join(UPLOAD_FOLDER, program_matrix_file.filename)
     mspeke_file_path = os.path.join(UPLOAD_FOLDER, mspeke_file.filename)
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, hardware_qual_matrix_file.filename)
+
+    print(program_matrix_path)
 
     program_matrix_file.save(program_matrix_path)  # 如果檢查通過，保存文件
     mspeke_file.save(mspeke_file_path)
@@ -79,7 +83,6 @@ def upload_file():
         # 檢查 Mspeke 文件
         with pd.ExcelFile(mspeke_file) as xls:
             if 'HW' not in xls.sheet_names:
-                print('4')
                 raise ValueError("Sheet 'HW' not found")
 
             df = pd.read_excel(xls, sheet_name='HW', skiprows=4)
@@ -91,14 +94,11 @@ def upload_file():
             print('ssqq4')
         # 檢查 Hardware Qual Matrix 文件
         with pd.ExcelFile(hardware_qual_matrix_file) as xls:
-            print('ssqq')
             df = pd.read_excel(xls, skiprows=1)
             hqm_headers = list(df.columns)  # 檢查標題
-            print(hqm_headers)
             if 'HP Part No.' not in hqm_headers:
-                print('qq')
                 raise ValueError("'HP Part No.' not found in HQM headers")
-            print('6')
+
         # 返回成功訊息
         return jsonify({"message": "Files uploaded and validated successfully"}), 200
 
