@@ -8,6 +8,8 @@ export default function Home() {
     
     <div className='main_page'>
       <title>Cost team web</title>
+     
+
       <div className='title_zone'>
         <h1>COST TEAMS WEB</h1>
       </div>
