@@ -15,39 +15,51 @@ export default function Home() {
       </div>
 
       <div className='function_zone1'>
-        <Link href="/NB_cost_sanity_check" className='cost_sanity_check_zone'>
-          <Button className='cost_sanity_check_btn'>
-            Notebook Cost Sanity Check
-          </Button>
-        </Link>
-        <Link href="/DT_cost_sanity_check" className='other_function1'>
-          <Button className='cost_sanity_check_btn' >
-            Desktop Cost Sanity Check
-          </Button>
-        </Link>
-        <Link href="/cost_sanity_check"className='other_function2'>
-          <Button className='cost_sanity_check_btn' >
-            waited to dev
-          </Button>
-        </Link>
+        <div className='cost_sanity_check_zone'>
+          <Link href="/NB_cost_sanity_check" className='link'>
+            <Button className='cost_sanity_check_btn'> 
+              Notebook Cost Sanity Check
+            </Button>
+          </Link>
+        </div>
+        <div className='other_function1'>
+          <Link href="/DT_cost_sanity_check" className='link'>
+            <Button className='cost_sanity_check_btn' >
+              Desktop Cost Sanity Check
+            </Button>
+          </Link>
+        </div>
+        <div className='other_function2'>
+          <Link href="/"className='link'>
+            <Button className='cost_sanity_check_btn' >
+              waited to dev
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className='function_zone2'>
-        <Link href="/cost_sanity_check"className='other_function3'>
-          <Button className='cost_sanity_check_btn' >
+        <div className='other_function3'>
+          <Link href="/" className='link'>
+            <Button className='cost_sanity_check_btn'> 
             waited to dev
-          </Button>
-        </Link>
-        <Link href="/cost_sanity_check" className='other_function4'>
-          <Button className='cost_sanity_check_btn' >
+            </Button>
+          </Link>
+        </div>
+        <div className='other_function4'>
+          <Link href="/" className='link'>
+            <Button className='cost_sanity_check_btn' >
             waited to dev
-          </Button>
-        </Link>
-        <Link href="/cost_sanity_check" className='other_function5'>
-          <Button className='cost_sanity_check_btn'>
-            waited to dev
-          </Button>
-        </Link>
+            </Button>
+          </Link>
+        </div>
+        <div className='other_function5'>
+          <Link href="/"className='link'>
+            <Button className='cost_sanity_check_btn' >
+              waited to dev
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
     

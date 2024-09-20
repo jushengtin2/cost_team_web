@@ -52,16 +52,20 @@
     width: 100%;
     box-sizing: border-box; /* 確保寬度包括內邊距和邊框 */
   }
-  
-  /* 統一設置按鈕樣式 */
-  .cost_sanity_check_btn,
-  .other_function1_btn, .other_function2_btn,
-  .other_function3_btn, .other_function4_btn,
-  .other_function5_btn {
-    background-color: #b0aeae;
-    border-radius: 40px;
+  .link{
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 垂直方向上居中對齊 */
     width: 80%;
     height: 60%;
+  }
+  
+  /* 統一設置按鈕樣式 */
+  .cost_sanity_check_btn {
+    background-color: #b0aeae;
+    border-radius: 40px;
+    width: 100%;
+    height: 100%;
     font-family: 'Jockey One';
     font-size: 2.5em;
     color: black;
