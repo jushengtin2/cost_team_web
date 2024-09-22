@@ -12,6 +12,7 @@ export default function Home() {
 
       <div className='title_zone'>
         <h1>COST TEAMS WEB</h1>
+
       </div>
 
       <div className='function_zone1'>
@@ -30,9 +31,9 @@ export default function Home() {
           </Link>
         </div>
         <div className='other_function2'>
-          <Link href="/"className='link'>
+          <Link href="/RAG"className='link'>
             <Button className='cost_sanity_check_btn' >
-              waited to dev
+            Cost team GPT
             </Button>
           </Link>
         </div>
