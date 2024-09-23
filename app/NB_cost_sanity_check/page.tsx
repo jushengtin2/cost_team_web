@@ -12,6 +12,7 @@ export default function NB_CostSanityCheckPage() {
   const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
   const mspekeFileInputRef = useRef<HTMLInputElement>(null);
   const hardwareQualMatrixFileInputRef = useRef<HTMLInputElement>(null);
+
   const [programMatrixFileName, setProgramMatrixFileName] = useState<string>("");
   const [mspekeFileName, setMspekeFileName] = useState<string>("");
   const [hardwareQualMatrixFileName, setHardwareQualMatrixFileName] = useState<string>("");
@@ -248,7 +249,7 @@ export default function NB_CostSanityCheckPage() {
       <title>NB Cost Sanity Check</title>
       
 
-      <div className='title_zone'>
+      <div className='NB_cost_sanity_check_title_zone'>
        <Link href="/" onClick={handleDelete} className="go_back_btn">
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
         Menu
@@ -344,9 +345,9 @@ export default function NB_CostSanityCheckPage() {
           </div>
         </div>
 
-        {/* 隱藏的文件輸入框 */}
+        {/* 隱藏的文件輸入框 */}  {/* type="file"代表是一個文件選擇框 */}
         <input
-          type="file"
+          type="file" 
           ref={programMatrixFileInputRef}
           className="hidden-file-input"
           onChange={(event) => handleFileChange(event, setProgramMatrixFileName)}
