@@ -44,7 +44,6 @@ def upload_file():
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, hardware_qual_matrix_file.filename)
 
     print(program_matrix_path)
-
     program_matrix_file.save(program_matrix_path)  # 如果檢查通過，保存文件
     mspeke_file.save(mspeke_file_path)
     hardware_qual_matrix_file.save(hardware_qual_matrix_path)
@@ -506,7 +505,7 @@ def bom_based_component_check():
                                         max_mspeke_item_note = item['Notes']
                         elif 'CONN' in cmp_level4_array or 'CON' in cmp_level4_array or 'CN' in cmp_level4_array:
                             for _, item in df_mspeke.iterrows():
-                                if item['Feature Category'] == 'Connectors':
+                                if item['Feature Category'] == 'Connectors' or item['Feature Category'] == 'Power Cord':
                                     ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
                                     if ratio > max_ratio:
                                         max_ratio = ratio
