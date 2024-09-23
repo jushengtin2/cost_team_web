@@ -245,7 +245,7 @@ export default function DT_CostSanityCheckPage() {
 
   return (
     <div className='cost_sanity_check_page'>
-      <div className='title_zone'>
+      <div className='DT_cost_sanity_check_title_zone'>
        <Link href="/" onClick={handleDelete} className="go_back_btn">
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
         Menu

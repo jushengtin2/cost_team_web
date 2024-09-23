@@ -11,7 +11,7 @@
     box-sizing: border-box;
   }
 
-  .title_zone {
+  .NB_cost_sanity_check_title_zone {
     flex: 0 0 20%;
     display: flex;
     justify-content: center;
@@ -134,13 +134,14 @@
   .bom_btn, .mspeke_btn, .hard_qual_matrix_btn, .delete_btn, .upload_btn, .cost_check_btn, .HQM_based_component_check_btn, .BOM_based_component_check_btn{
     
     background-color: #b0aeae;
-    border-radius: 70px;
+    border-radius: 30px;
     width: 80%;
     height: 60%;
     font-family: 'Jockey One';
     font-size: 1.5em;
     color: black;
     font-weight: 400;
+    
   }
 
   .hidden-file-input {
