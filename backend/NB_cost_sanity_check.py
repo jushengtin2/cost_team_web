@@ -457,8 +457,13 @@ def bom_based_component_check():
     mspeke_path = os.path.join(UPLOAD_FOLDER, file_names.get('mspeke_file', ''))
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('hardware_qual_matrix_file', ''))
 
+
+
     if not (os.path.exists(program_matrix_path) and os.path.exists(mspeke_path) and os.path.exists(hardware_qual_matrix_path)):
         return jsonify({"error": "One or more files are missing. Please upload the files first."}), 400
+    
+    pm_wb = openpyxl.load_workbook(program_matrix_path)
+    pm_sheet = pm_wb['Program Matrix']
     
     try:
         # 讀取 Excel 文件
@@ -470,12 +475,13 @@ def bom_based_component_check():
             df_mspeke = pd.read_excel(mspeke, sheet_name=mspeke_sheet_names[1], skiprows=4)
             df_hqm = pd.read_excel(hqm, skiprows=1)
 
-            # 清理和準備數據
-            start_idx = df_pm[df_pm['Category / Manufacturing Comments'] == 'DIB Hardware'].index[0]  # 去除DIB部分
+            # 清理和準備數據(去除DIB部分)
+            start_idx = df_pm[df_pm['Category / Manufacturing Comments'] == 'DIB Hardware'].index[0]  
             end_idx = df_pm[(df_pm.index > start_idx) & (df_pm['Category / Manufacturing Comments'].notna())].index[0]
-
             df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
-            df_mspeke = df_mspeke.iloc[:, [0,1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
+
+            #選出Mspeke需要的部分
+            df_mspeke = df_mspeke.iloc[:, [0, 1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
             df_hqm = df_hqm[['HP Part No.', 'Qual Status']].dropna(subset=['HP Part No.'])
             hqm_dict = df_hqm.set_index('HP Part No.')['Qual Status'].to_dict()
 
@@ -483,9 +489,9 @@ def bom_based_component_check():
             df_pm['Max_MSPEKE_Item'] = None
             df_pm['Max_MSPEKE_Item_Note'] = None
             df_pm['HQM status'] = None
-            print('1')
+            
             for index, row in df_pm.iterrows():
-                if pd.notna(row['Component\nLevel 4']):
+                if pd.notna(row['Component\nLevel 4']) or pd.notna(row['Component\nLevel 5']):  #For RCTO也需要對照mspeke
                     cmp_level4 = row['Description']
                     if 'lbl' not in cmp_level4.lower() and 'doc' not in cmp_level4.lower() and 'icon' not in cmp_level4.lower(): #把不需要對照的刪掉
                         max_ratio = 0
@@ -523,14 +529,19 @@ def bom_based_component_check():
                         # 插入結果到對應的行
                         df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
                         df_pm.at[index, 'Max_MSPEKE_Item_Note'] = max_mspeke_item_note
-                        print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
+                        #print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
 
                         if row['Component\nLevel 4'] not in hqm_dict:
                             df_pm.at[index, 'HQM status'] = 'Not in Hardware Qual Matrix'
                         else:
                             qual_status_value = hqm_dict[row['Component\nLevel 4']]
                             df_pm.at[index, 'HQM status'] = qual_status_value
-        print('2')
+
+                cell = pm_sheet[f'C{index}']  # 假設 Description 列是 B 列，並且 DataFrame 的索引與 Excel 行數有偏移
+                if cell.alignment.indent > 0:
+                    indent_spaces = ' ' * cell.alignment.indent
+                    df_pm.at[index, 'Description'] = indent_spaces + row['Description']
+
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_pm.to_excel(writer, index=False, sheet_name='BOM Based Component Check')
@@ -645,8 +656,6 @@ def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):
             j -= 1
 
     return max_score
-
-
 
 
 if __name__ == '__main__':
