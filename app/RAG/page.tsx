@@ -24,7 +24,6 @@ export default function Cost_team_GPT() {
     const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
     const [programMatrixFileName, setProgramMatrixFileName] = useState<string>("");
     const [messages, setMessages] = useState([]);
-    const [temp_input, setTemp_input] = useState('');
     const [input, setInput] = useState('');
     const replyMessageZoneRef = useRef(null);
 
@@ -44,34 +43,36 @@ export default function Cost_team_GPT() {
         e.preventDefault();
         
         if (!input.trim()) return;
-
+    
         // 添加用户消息
         const userMessage = { sender: 'User', text: input };
         setMessages((prev) => [...prev, userMessage]);
-
-        setTemp_input(input);
+    
+       
         setInput('');
+    
         try {
-            setInput('');
-            const response = await fetch('http://127.0.0.1:11434/api/generate', {
+            
+            const response = await fetch('http://15.38.111.74:8081/ollama', {  // 改成後端的 IP 和端口
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: "gemma2:2b", prompt: input ,"stream": false}),
-              });
-          
-          const data = await response.json();
-
-          // 添加 AI 的回复
-          const aiMessage = { sender: 'AI', text: data.response };
-          setMessages((prev) => [...prev, aiMessage]);
-
+                body: JSON.stringify({ prompt: input })  // 传递用户输入的 prompt
+            });
+    
+            const data = await response.json();
+    
+            // 添加 AI 的回复
+            const aiMessage = { sender: 'AI', text: data.response };
+            setMessages((prev) => [...prev, aiMessage]);
+    
         } catch (error) {
-          console.error('Error fetching AI response:', error);
+            console.error('Error fetching AI response:', error);
         }
-
-        setTemp_input('');
+    
+      
     };
+    
 
     return (
         <div className='Cost_team_GPT_page'>
@@ -83,9 +84,9 @@ export default function Cost_team_GPT() {
                 </Link>
                 <h1>Cost team GPT</h1>
             </div>
-            <div className='chat_zone'>
-                <div className='chatbox_zone'>
-                    <div className='reply_message_zone' ref={replyMessageZoneRef}>
+            <div className='chat_zonee'>
+                <div className='chatbox_zonee'>
+                    <div className='reply_message_zonee' ref={replyMessageZoneRef}>
                         {messages.map((msg, index) => (
                             <Message key={index} sender={msg.sender} text={msg.text} />
                         ))}
