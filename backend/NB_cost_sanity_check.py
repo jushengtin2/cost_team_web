@@ -35,68 +35,70 @@ def upload_file():
     program_matrix_file = request.files.get('programMatrixFile')
     mspeke_file = request.files.get('mspekeFile')
     hardware_qual_matrix_file = request.files.get('hardwareQualMatrixFile')
+    CPC_file = request.files.get('CPCFile')
 
-    # 檢查是否缺少文件
-    if not program_matrix_file or not mspeke_file or not hardware_qual_matrix_file:
-        return jsonify({"error": "Missing file"}), 400
-    program_matrix_path = os.path.join(UPLOAD_FOLDER, program_matrix_file.filename)
-    mspeke_file_path = os.path.join(UPLOAD_FOLDER, mspeke_file.filename)
-    hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, hardware_qual_matrix_file.filename)
+    
+    if program_matrix_file:
+        program_matrix_path = os.path.join(UPLOAD_FOLDER, program_matrix_file.filename)
+        program_matrix_file.save(program_matrix_path)  # 如果檢查通過，保存文件
+        file_names['program_matrix_file'] = program_matrix_file.filename
+    if mspeke_file:
+        mspeke_file_path = os.path.join(UPLOAD_FOLDER, mspeke_file.filename)
+        mspeke_file.save(mspeke_file_path)
+        file_names['mspeke_file'] = mspeke_file.filename
+    if hardware_qual_matrix_file:
+        hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, hardware_qual_matrix_file.filename)
+        hardware_qual_matrix_file.save(hardware_qual_matrix_path)
+        file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
+    if CPC_file:
+        cpc_path = os.path.join(UPLOAD_FOLDER, CPC_file.filename)
+        CPC_file.save(cpc_path)
+        file_names['CPC_file'] = CPC_file.filename
 
-    print(program_matrix_path)
-    program_matrix_file.save(program_matrix_path)  # 如果檢查通過，保存文件
-    mspeke_file.save(mspeke_file_path)
-    hardware_qual_matrix_file.save(hardware_qual_matrix_path)
-
-    file_names['program_matrix_file'] = program_matrix_file.filename
-    file_names['mspeke_file'] = mspeke_file.filename
-    file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
-
-    print('1')
     try:
         # 檢查 Program Matrix 文件
-        with pd.ExcelFile(program_matrix_file) as xls:
-            if 'Program Matrix' not in xls.sheet_names:
-                raise ValueError("Sheet 'Program Matrix' not found")
-            print('2')    
-            df = pd.read_excel(xls, sheet_name='Program Matrix', skiprows=4)
-            program_matrix_headers = list(df.columns)  # 檢查標題
+        if program_matrix_file:
+            with pd.ExcelFile(program_matrix_file) as xls:
+                if 'Program Matrix' not in xls.sheet_names:
+                    raise ValueError("Sheet 'Program Matrix' not found")
+                print('2')    
+                df = pd.read_excel(xls, sheet_name='Program Matrix', skiprows=4)
+                program_matrix_headers = list(df.columns)  # 檢查標題
 
-            expected_program_matrix_headers = [
-                'Category / Manufacturing Comments',
-                'Release(s)',
-                'Description',
-                'AV\nLevel 2', 
-                'SA\nLevel 3',     
-                'Component\nLevel 4',  
-            ]
+                expected_program_matrix_headers = [
+                    'Category / Manufacturing Comments',
+                    'Release(s)',
+                    'Description',
+                    'AV\nLevel 2', 
+                    'SA\nLevel 3',     
+                    'Component\nLevel 4',  
+                ]
 
-            # 測試 2: 檢查標題是否匹配
-            actual_headers_filtered = [header for header in program_matrix_headers if 'Unnamed' not in header]
+                # 測試 2: 檢查標題是否匹配
+                actual_headers_filtered = [header for header in program_matrix_headers if 'Unnamed' not in header]
 
-            # Check if the key headers match the expected ones
-            if expected_program_matrix_headers != actual_headers_filtered[:len(expected_program_matrix_headers)]:
-                raise ValueError("Headers in Program Matrix do not match the expected values.")
-            print('3')  
+                # Check if the key headers match the expected ones
+                if expected_program_matrix_headers != actual_headers_filtered[:len(expected_program_matrix_headers)]:
+                    raise ValueError("Headers in Program Matrix do not match the expected values.")
+                print('3')  
 
         # 檢查 Mspeke 文件
-        with pd.ExcelFile(mspeke_file) as xls:
-            if 'HW' not in xls.sheet_names:
-                raise ValueError("Sheet 'HW' not found")
+        if mspeke_file:
+            with pd.ExcelFile(mspeke_file) as xls:
+                if 'HW' not in xls.sheet_names:
+                    raise ValueError("Sheet 'HW' not found")
+                df = pd.read_excel(xls, sheet_name='HW', skiprows=4)
+                mspeke_headers = list(df.columns)  # 檢查標題
+                if 'Feature Full Name' not in mspeke_headers or 'Notes' not in mspeke_headers:
+                    raise ValueError("'Feature Full Name' or 'Notes' not found in Mspeke headers")
 
-            df = pd.read_excel(xls, sheet_name='HW', skiprows=4)
-            mspeke_headers = list(df.columns)  # 檢查標題
-            if 'Feature Full Name' not in mspeke_headers or 'Notes' not in mspeke_headers:
-                
-                raise ValueError("'Feature Full Name' or 'Notes' not found in Mspeke headers")
-            print('5')    
-            print('ssqq4')
-        # 檢查 Hardware Qual Matrix 文件
-        with pd.ExcelFile(hardware_qual_matrix_file) as xls:
-            df = pd.read_excel(xls, skiprows=1)
-            hqm_headers = list(df.columns)  # 檢查標題
-            if 'HP Part No.' not in hqm_headers:
-                raise ValueError("'HP Part No.' not found in HQM headers")
+            # 檢查 Hardware Qual Matrix 文件
+        if hardware_qual_matrix_file:
+            with pd.ExcelFile(hardware_qual_matrix_file) as xls:
+                df = pd.read_excel(xls, skiprows=1)
+                hqm_headers = list(df.columns)  # 檢查標題
+                if 'HP Part No.' not in hqm_headers:
+                    raise ValueError("'HP Part No.' not found in HQM headers")
 
         # 返回成功訊息
         return jsonify({"message": "Files uploaded and validated successfully"}), 200
@@ -138,7 +140,7 @@ def bom_cost_check():
             sa_header = 'SA\nLevel 3'
             component_header = 'Component\nLevel 4'
             
-            # Renaming logic
+            #重新命名COLUMN 因為錢的地方TITLE會是空的 所以要加上COLUMN(且column會多個av sa可能性!)
             av_count = 1
             sa_count = 1
             new_columns = {}
@@ -152,13 +154,13 @@ def bom_cost_check():
                 if sa_header in col_name:
                     sa_count = 1  # Reset counter when SA header is found
                     
-                # Rename columns between 'AV\nLevel 2' and 'SA\nLevel 3'
+                # Rename columns between 'AV\nLevel 2' and 'SA\nLevel 3' 如果很多site會多個av可能性
                 if av_header in program_matrix_headers and program_matrix_headers.index(av_header) < i < program_matrix_headers.index(sa_header):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'av_price{av_count}'
                         av_count += 1
 
-                # Rename columns between 'SA\nLevel 3' and 'Component\nLevel 4'
+                # Rename columns between 'SA\nLevel 3' and 'Component\nLevel 4' 如果很多site會多個sa可能性
                 if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'sa_price{sa_count}'
@@ -426,12 +428,12 @@ def hqm_based_component_check():
                 if pd.isna(row._2):  # '_2' 對應的是 'HP Part No.' 列
                     if pd.notna(row.ID) and not any(char.isdigit() for char in str(row.ID)):
                         # ID 欄位沒有數字時，設置綠色
-                        for col_idx in range(1, len(df_hqm.columns) + 1):
+                        for col_idx in range(1, 4): #只要HQM raw data塗色就好
                             cell = worksheet.cell(row=row_idx, column=col_idx)
                             cell.fill = green_fill
                     else:
                         # ID 欄位包含數字時，設置淺咖啡色
-                        for col_idx in range(1, len(df_hqm.columns) + 1):
+                        for col_idx in range(1, 4):
                             cell = worksheet.cell(row=row_idx, column=col_idx)
                             cell.fill = light_brown_fill
 
@@ -448,8 +450,6 @@ def hqm_based_component_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
 @app.route('/NB_bom_based_component_check', methods=['GET'])
 def bom_based_component_check():
     global file_names
@@ -458,12 +458,8 @@ def bom_based_component_check():
     hardware_qual_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('hardware_qual_matrix_file', ''))
 
 
-
     if not (os.path.exists(program_matrix_path) and os.path.exists(mspeke_path) and os.path.exists(hardware_qual_matrix_path)):
         return jsonify({"error": "One or more files are missing. Please upload the files first."}), 400
-    
-    pm_wb = openpyxl.load_workbook(program_matrix_path)
-    pm_sheet = pm_wb['Program Matrix']
     
     try:
         # 讀取 Excel 文件
@@ -491,7 +487,7 @@ def bom_based_component_check():
             df_pm['HQM status'] = None
             
             for index, row in df_pm.iterrows():
-                if pd.notna(row['Component\nLevel 4']) or pd.notna(row['Component\nLevel 5']):  #For RCTO也需要對照mspeke
+                if pd.notna(row['Component\nLevel 4']):  #For RCTO也需要對照mspeke
                     cmp_level4 = row['Description']
                     if 'lbl' not in cmp_level4.lower() and 'doc' not in cmp_level4.lower() and 'icon' not in cmp_level4.lower(): #把不需要對照的刪掉
                         max_ratio = 0
@@ -514,7 +510,7 @@ def bom_based_component_check():
                                 if item['Feature Category'] == 'Connectors' or item['Feature Category'] == 'Power Cord':
                                     ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
                                     if ratio > max_ratio:
-                                        max_ratio = ratio
+                                        max_ratio = ratio  
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
                         else:
@@ -529,6 +525,7 @@ def bom_based_component_check():
                         # 插入結果到對應的行
                         df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
                         df_pm.at[index, 'Max_MSPEKE_Item_Note'] = max_mspeke_item_note
+                        df_pm.at[index, 'Description'] = ' '*4 +df_pm.at[index, 'Description'] #所 
                         #print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
 
                         if row['Component\nLevel 4'] not in hqm_dict:
@@ -536,12 +533,12 @@ def bom_based_component_check():
                         else:
                             qual_status_value = hqm_dict[row['Component\nLevel 4']]
                             df_pm.at[index, 'HQM status'] = qual_status_value
-
-                cell = pm_sheet[f'C{index}']  # 假設 Description 列是 B 列，並且 DataFrame 的索引與 Excel 行數有偏移
-                if cell.alignment.indent > 0:
-                    indent_spaces = ' ' * cell.alignment.indent
-                    df_pm.at[index, 'Description'] = indent_spaces + row['Description']
-
+                if pd.notna(row['SA\nLevel 3']):
+                    df_pm.at[index, 'Description'] = ' '*2 +df_pm.at[index, 'Description']
+                if pd.notna(row['Component\nLevel 5']):
+                    df_pm.at[index, 'Description'] = ' '*6 +df_pm.at[index, 'Description']
+                
+                
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_pm.to_excel(writer, index=False, sheet_name='BOM Based Component Check')
@@ -595,8 +592,7 @@ def bom_based_component_check():
 
             for cell in worksheet[worksheet.cell(row=1, column=hqm_status_col).column_letter]:
                 cell.fill = yellow_fill
-                cell.border = thin_border
-
+                cell.border = thin_border 
         output.seek(0)
 
         return send_file(
@@ -609,7 +605,146 @@ def bom_based_component_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/CPC_check', methods=['GET'])
+def CPC_check():
+
+    CPC_path = os.path.join(UPLOAD_FOLDER, file_names.get('CPC_file', ''))
+    program_matrix_path = os.path.join(UPLOAD_FOLDER, file_names.get('program_matrix_file', ''))
+
+    if not os.path.exists(program_matrix_path):
+        return jsonify({"error": "The program matrix file is missing. Please upload the file first."}), 400
+    if not os.path.exists(CPC_path):
+        return jsonify({"error": "The program matrix file is missing. Please upload the file first."}), 400
+      
+    try:
+        with pd.ExcelFile(CPC_path) as CPC, pd.ExcelFile(program_matrix_path) as BOM: 
+            optional_sheets = [sheet for sheet in CPC.sheet_names if sheet.startswith('OptionSA')]
+            if len(optional_sheets) < 2:
+                return jsonify({"error": "The required OptionSA sheets are missing."}), 400
+
+            df_OptionSA = pd.read_excel(CPC, sheet_name=optional_sheets[0])
+            df_OptionSA_SUM = pd.read_excel(CPC, sheet_name=optional_sheets[1])
+
+            SA_PN_dict = {}
+            OptionSA = []
+            OptionSA_SUM = []
+            OptionSA_error_result = []
+            OptionSA_SUM_error_result = []
+
+            # 紀錄OptionSA的價錢總和
+            for index, row in df_OptionSA.iterrows():
+                key = f"{row['SA PN']}_{row['Program Matrix']}"
+                OptionSA.append(key)
+                if key not in SA_PN_dict:
+                    SA_PN_dict[key] = row['Cost']
+                else:
+                    SA_PN_dict[key] += row['Cost']
+            
+            OptionSA = tuple(set(OptionSA))
+
+            # 計算OptionSA_SUM跟OptionSA加起來是否一樣 還有是否 只有出現在OptionSA_SUM但沒有在OptionSA (會儲存在第二個sheet)
+            for index, row in df_OptionSA_SUM.iterrows():
+                key = f"{row['SA PN']}_{row['Program Matrix']}"
+                OptionSA_SUM.append(key)
+                if key not in SA_PN_dict and key!='':
+                    OptionSA_SUM_error_result.append([row['SA PN'], row['Program Matrix'], '', 'OptionSA_SUM Key not found in OptionSA'])
+                elif abs(row['Cost'] - SA_PN_dict[key]) > 0.01:  # Allow for small floating point differences
+                    OptionSA_SUM_error_result.append([row['SA PN'], row['Program Matrix'], 'Error Cost', ''])
+
+            # 找出出現在OptionSA但沒有在OptionSA_SUM(會儲存在第一個sheet)
+            for key in OptionSA:
+                if key not in OptionSA_SUM:
+                    OptionSA_error_result.append([key])
+        
+            ##########開始對照BOM的錢跟CPC SA是否一樣#########
+
+            df_BOM = pd.read_excel(BOM, sheet_name='Program Matrix', skiprows=4)
+            program_matrix_headers = list(df_BOM.columns)  # Extract the headers
+            # Define key headers
+            av_header = 'AV\nLevel 2'
+            sa_header = 'SA\nLevel 3'
+            component_header = 'Component\nLevel 4'
+            
+            #重新命名COLUMN 因為錢的地方TITLE會是空的 所以要加上COLUMN(且column會多個av sa可能性!)
+            av_count = 1
+            sa_count = 1
+            new_columns = {}
+            
+            for i in range(len(program_matrix_headers)):
+                col_name = program_matrix_headers[i]
+                
+                if av_header in col_name:
+                    av_count = 1  # Reset counter when AV header is found
+                    
+                if sa_header in col_name:
+                    sa_count = 1  # Reset counter when SA header is found
+                    
+                # Rename columns between 'AV\nLevel 2' and 'SA\nLevel 3' 如果很多site會多個av可能性
+                if av_header in program_matrix_headers and program_matrix_headers.index(av_header) < i < program_matrix_headers.index(sa_header):
+                    if 'Unnamed' in col_name:
+                        new_columns[col_name] = f'av_price{av_count}'
+                        av_count += 1
+
+                # Rename columns between 'SA\nLevel 3' and 'Component\nLevel 4' 如果很多site會多個sa可能性
+                if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header):
+                    if 'Unnamed' in col_name:
+                        new_columns[col_name] = f'sa_price{sa_count}'
+                        sa_count += 1 
+            # Apply the renaming
+            df_BOM.rename(columns=new_columns, inplace=True)
+
+            df_BOM = df_BOM[['SA\nLevel 3','sa_price1']].dropna(subset=['sa_price1']).drop_duplicates() #先假設BPM只有一個SA(可能到時候會很多SA)
+            sa_dict = dict(zip(df_BOM['SA\nLevel 3'], df_BOM['sa_price1']))
+            
+            CPC_BOM_COST_ERROR = []
+
+            for index, row in df_OptionSA_SUM.iterrows():  #找在OptionSA_SUM的零件是否錢跟BOM同
+
+                if row['SA PN'] not in sa_dict:
+                    CPC_BOM_COST_ERROR.append([f'{row["SA PN"]} not in BOM', row['Program Matrix'], '', ''])
+                elif abs(row['Cost'] - sa_dict[row['SA PN']]) >0.01:
+                    CPC_BOM_COST_ERROR.append([row['SA PN'], row['Program Matrix'], row['Cost'], sa_dict[row['SA PN']]])
+
+        # Create Excel workbook
+        wb = Workbook()
+
+        # First sheet: OptionSA Check
+        ws = wb.active
+        ws.title = 'OptionSA Check'
+        ws.append(['Exist in OptionSA_SUM or not'])
+        for row in OptionSA_error_result:
+            ws.append(row)
+
+        # Second sheet: OptionSA_SUM Check
+        ws_second = wb.create_sheet(title='OptionSA_SUM Check')
+        ws_second.append(['OptionSA_SUM SA PN', 'Program Matrix', 'OptionSA - OptionSA_SUM Cost Difference', 'Exist or Not'])
+        for row in OptionSA_SUM_error_result:
+            ws_second.append(row)
+
+        # Second sheet: OptionSA_SUM Check
+        ws_third = wb.create_sheet(title='BOM and OptionSA_SUM Check')
+        ws_third.append(['OptionSA_SUM SA PN','Program Matrix' ,'OptionSA_SUM $$', 'BOM $$'])
+        for row in CPC_BOM_COST_ERROR:
+            ws_third.append(row)
+
+        # Save workbook to BytesIO object
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_buffer.seek(0)
+        wb.close()  # Ensure the workbook is closed
+
+        # Return the Excel file as a downloadable attachment
+        return send_file(
+            excel_buffer,
+            as_attachment=True,
+            download_name='CPC_check.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
 
 #Smith-Waterman algorithm計算文字相似度
 def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):  

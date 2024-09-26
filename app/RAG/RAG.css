@@ -37,7 +37,7 @@
     
   }
 
-  .chat_zone {
+  .chat_zonee {
     height: 88%;
     width: 100%;
     display: flex;
@@ -47,7 +47,7 @@
     background-color: #EBDEBE;
   }
 
-  .chatbox_zone{
+  .chatbox_zonee{
     display: flex;
     height: 90%;
     width: 90%;
@@ -56,9 +56,9 @@
     outline: 5px solid #0c0c0c; /* 使用 outline 來設置有顏色的邊框 */
   }
 
-  .reply_message_zone{    
+  .reply_message_zonee{    
     
-    background-color:rgb(55, 55, 54);
+    background-color:rgb(107, 107, 105);
     
     flex-grow: 1;  /* 保證訊息區域隨著內容增長 */
     overflow-y: auto;  /* 啟用垂直滾動條 */
@@ -116,8 +116,8 @@
     position: absolute;
     bottom: 2%;
     height: 5%;
-    width: 70%;
-    background-color: rgb(27, 25, 23);
+    width: 70%; 
+    background-color: rgb(121, 113, 106);
     border-radius: 30px;
     outline: 5px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
     display: flex;

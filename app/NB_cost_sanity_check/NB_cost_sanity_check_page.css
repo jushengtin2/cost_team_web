@@ -115,23 +115,23 @@
     color: #010101;
   }
 
-  .bom_btn_zone, .mspeke_btn_zone, .hard_qual_matrix_btn_zone, .delete_zone, .upload_zone{
+  .bom_btn_zone, .mspeke_btn_zone, .CPC_btn_zone, .hard_qual_matrix_btn_zone, .delete_zone, .upload_zone{
     background-color: #EBDEBE;
     width: 100%;
-    height: 18%; 
+    height: 15%; 
     display: flex;
     align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
   }
-  .cost_check_zone, .HQM_based_component_check_zone, .BOM_based_component_check_zone{
+  .cost_check_zone, .HQM_based_component_check_zone, .BOM_based_component_check_zone, .CPC_based_component_check_zone{
     background-color: #EBDEBE;
     width: 100%;
-    height: 30%; 
+    height: 22.5%; 
     display: flex;
     align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
   }
-  .bom_btn, .mspeke_btn, .hard_qual_matrix_btn, .delete_btn, .upload_btn, .cost_check_btn, .HQM_based_component_check_btn, .BOM_based_component_check_btn{
+  .bom_btn, .mspeke_btn, .hard_qual_matrix_btn, .CPC_btn, .delete_btn, .upload_btn, .cost_check_btn, .HQM_based_component_check_btn, .BOM_based_component_check_btn, .CPC_based_component_check_btn{
     
     background-color: #b0aeae;
     border-radius: 30px;
