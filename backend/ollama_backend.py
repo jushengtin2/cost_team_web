@@ -34,5 +34,3 @@ def generate_response():
 
 if __name__ == "__main__":
     app.run(host="15.38.111.74", port=8081)
-
-

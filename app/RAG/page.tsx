@@ -26,6 +26,7 @@ export default function Cost_team_GPT() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const replyMessageZoneRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (replyMessageZoneRef.current) {
@@ -50,7 +51,7 @@ export default function Cost_team_GPT() {
     
        
         setInput('');
-    
+        setLoading(true); // 顯示旋轉動畫
         try {
             
             const response = await fetch('http://15.38.111.74:8081/ollama', {  // 改成後端的 IP 和端口
@@ -59,15 +60,17 @@ export default function Cost_team_GPT() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: input })  // 传递用户输入的 prompt
             });
-    
+            
             const data = await response.json();
     
             // 添加 AI 的回复
             const aiMessage = { sender: 'AI', text: data.response };
             setMessages((prev) => [...prev, aiMessage]);
+            setLoading(false); // 顯示旋轉動畫
     
         } catch (error) {
             console.error('Error fetching AI response:', error);
+            setLoading(false);
         }
     
       
@@ -88,8 +91,9 @@ export default function Cost_team_GPT() {
                 <div className='chatbox_zonee'>
                     <div className='reply_message_zonee' ref={replyMessageZoneRef}>
                         {messages.map((msg, index) => (
+                            
                             <Message key={index} sender={msg.sender} text={msg.text} />
-                        ))}
+                        ))}{loading && <CircularProgress size={50} className='loading_gif'/>}
                     </div>
                 </div>
                
