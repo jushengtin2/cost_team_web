@@ -58,7 +58,7 @@
 
   .reply_message_zonee{    
     
-    background-color:rgb(107, 107, 105);
+    background-color:rgb(136, 136, 133);
     
     flex-grow: 1;  /* 保證訊息區域隨著內容增長 */
     overflow-y: auto;  /* 啟用垂直滾動條 */
@@ -145,4 +145,7 @@
     width: 10%;
   }
 
+  .hidden-file-input{
+    display: none;
+  }
  
