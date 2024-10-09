@@ -12,8 +12,8 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 const Message = ({ sender, text }) => {
     const isUser = sender === 'User';
     return (
-      <div className={`message ${isUser ? 'user_message' : 'ai_message'}`}> 
-        <div className={`message_content ${isUser ? 'user_content' : 'ai_content'}`}>
+      <div className={`${isUser ? 'user_message' : 'ai_message'}`}> 
+        <div className={`${isUser ? 'user_content' : 'ai_content'}`}>
           <strong>{sender}:</strong> {text}
         </div>
       </div>
@@ -21,12 +21,27 @@ const Message = ({ sender, text }) => {
 };
 
 export default function Cost_team_GPT() {
-    const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
-    const [programMatrixFileName, setProgramMatrixFileName] = useState<string>("");
+    const gptFileInputRef = useRef<HTMLInputElement>(null);
+    const [gptFileInput, setgptFileInput] = useState<string>("");
     const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState('');
+    const [message_input, setInput] = useState('');
     const replyMessageZoneRef = useRef(null);
     const [loading, setLoading] = useState(false);
+
+    const handleButtonClick = (inputRef) => {
+        if (inputRef.current) {
+          inputRef.current.click();
+        }  
+      };
+
+    const handleFileChange = (event, setFileName) => {
+        const file = event.target.files[0];
+        if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') )) {
+          setFileName(file.name);
+          console.log("選擇的文件:", file.name);
+        } 
+      };
+    
 
     useEffect(() => {
         if (replyMessageZoneRef.current) {
@@ -34,19 +49,15 @@ export default function Cost_team_GPT() {
         }
     }, [messages]); // 每次 messages 改變時觸發滾動
 
-    const handleButtonClick = (inputRef) => {
-        if (inputRef.current) {
-          inputRef.current.click();
-        }
-      };
+   
     // 处理消息发送
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!input.trim()) return;
+        if (!message_input.trim()) return;
     
         // 添加用户消息
-        const userMessage = { sender: 'User', text: input };
+        const userMessage = { sender: 'User', text: message_input };
         setMessages((prev) => [...prev, userMessage]);
     
        
@@ -99,22 +110,30 @@ export default function Cost_team_GPT() {
                
                 <div className='message_input_zone'>
                     <form onSubmit={handleSubmit} className='abc'>
-                        <button className='upload_file_to_gpt' onClick={() => handleButtonClick(programMatrixFileInputRef)}>
+                        <button type="button" className='upload_file_to_gpt' onClick={() => handleButtonClick(gptFileInputRef)}>
                             <AttachFileIcon/> 
                         </button>
+                        
                         <input className='message_input'
                             type="text"
-                            value={input}
+                            value={message_input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Type your message..."   
                         />
-                        <button type="submit"  className='send_message_btn' onClick={() => handleSubmit(input)}>
+                        <button type="submit"  className='send_message_btn' >
                             Send
                         </button>
                     </form>
                 </div>             
-                
             </div>
+
+            <input
+            type="file" 
+            ref={gptFileInputRef}
+            className="hidden-file-input"
+            onChange={(event) => handleFileChange(event, setgptFileInput)}
+            title="Choose a file to upload"
+            />
         </div>
     );
 }

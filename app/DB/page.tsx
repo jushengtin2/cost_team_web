@@ -3,7 +3,7 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import './NB_cost_sanity_check_page.css';
+import './DB.css';
 import { useRef, useState } from 'react';
 import Link from "next/link";
 
@@ -299,11 +299,35 @@ export default function NB_CostSanityCheckPage() {
       setLoading(false); // 隱藏旋轉動畫
     }
   };
+
+  
+    // 呼叫 API 的函數
+    const callSupersetApi = async () => {
+      try {
+        const response = await fetch('host.docker.internal/api/v1/advanced_data_type/convert', {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',  // 確保攜帶憑證（如 cookie）
+        body: JSON.stringify({
+          username: 'jushengtin2',
+          password: 'a22753032',
+          provider: 'db',
+        }),
+      });
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('API 呼叫失敗');
+      }
+    };
   
 
   return (
     <div className='cost_sanity_check_page'>
-      <title>NB Cost Sanity Check</title>
+      <title>DB</title>
       
 
       <div className='NB_cost_sanity_check_title_zone'>
@@ -311,73 +335,68 @@ export default function NB_CostSanityCheckPage() {
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
         Menu
       </Link>
-        <h1>NB Cost Sanity Check</h1>
+        <h1>DB</h1>
       </div>
 
       <div className='function_zone'>
         <div className='upload_file_zone'>
           <div className='upload_file_zone_title'>
-            Choose the file here:
+            abc
           </div>
           <div className='bom_btn_zone'> {/* 檢查 programMatrixFileName 是否為空或正在加載*/}
-            <Button className='bom_btn' onClick={() => handleButtonClick(programMatrixFileInputRef)}>
-              BOM
+            <Button className='bom_btn' onClick={callSupersetApi}>
+              call api
             </Button>
           </div>
           <div className='mspeke_btn_zone'>
             <Button className='mspeke_btn' onClick={() => handleButtonClick(mspekeFileInputRef)}>
-              MSPEK
+            function2
             </Button>
           </div>
           <div className='hard_qual_matrix_btn_zone'>
             <Button className='hard_qual_matrix_btn' onClick={() => handleButtonClick(hardwareQualMatrixFileInputRef)}>
-              HQM
+            function3
             </Button>
           </div>
           <div className='CPC_btn_zone'>
             <Button className='CPC_btn' onClick={() => handleButtonClick(CPCFileInputRef)}>
-              CPC
+            function4
             </Button>
           </div>
-          <div className='upload_and_delete_zone'>
-            <div className='upload_zone'>
-              <Button className='upload_btn' onClick={handleUpload}>
-                Upload
-              </Button>
-            </div>
-            <div className='delete_zone'>
-              <Button className='delete_btn' onClick={handleDelete}>
-                Delete
-              </Button>
-            </div>
-
+          <div className='delete_zone'>
+            <Button className='delete_btn' onClick={handleDelete}>
+            function5
+            </Button>
           </div>
-          
-          
+          <div className='upload_zone'>
+            <Button className='upload_btn' onClick={handleUpload}>
+            function6
+            </Button>
+          </div>
         </div>
 
         <div className='choose_function_zone'>
           <div className='choose_function_title'>
-            Choose the function:
+            abc
           </div>
           <div className='cost_check_zone'>
             <Button className='cost_check_btn' onClick={handle_BOM_Cost_Check} disabled={!uploadBOMComplete} >
-              BOM Cost Check
+            function7
             </Button>
           </div>
           <div className='HQM_based_component_check_zone'>
             <Button className='HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
-              HQM-Based Component check
+            function8
             </Button>
           </div>
           <div className='BOM_based_component_check_zone'>
             <Button className='BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
-              BOM-Based Component check
+            function9
             </Button>
           </div>
           <div className='CPC_based_component_check_zone'>
             <Button className='CPC_based_component_check_btn' onClick={handle_CPC_based_component_Check} disabled={!upload_CPC_Complete} >
-              CPC check
+            function10
             </Button>
           </div>
         </div>

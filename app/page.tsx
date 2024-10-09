@@ -41,9 +41,9 @@ export default function Home() {
 
       <div className='function_zone2'>
         <div className='other_function3'>
-          <Link href="/" className='link'>
+          <Link href="/DB" className='link'>
             <Button className='cost_sanity_check_btn'> 
-            waited to dev
+            DB
             </Button>
           </Link>
         </div>
