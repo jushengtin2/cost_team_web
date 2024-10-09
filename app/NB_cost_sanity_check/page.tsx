@@ -317,7 +317,7 @@ export default function NB_CostSanityCheckPage() {
       <div className='function_zone'>
         <div className='upload_file_zone'>
           <div className='upload_file_zone_title'>
-            Upload the file here:
+            Choose the file here:
           </div>
           <div className='bom_btn_zone'> {/* 檢查 programMatrixFileName 是否為空或正在加載*/}
             <Button className='bom_btn' onClick={() => handleButtonClick(programMatrixFileInputRef)}>
@@ -339,16 +339,21 @@ export default function NB_CostSanityCheckPage() {
               CPC
             </Button>
           </div>
-          <div className='delete_zone'>
-            <Button className='delete_btn' onClick={handleDelete}>
-              Delete
-            </Button>
+          <div className='upload_and_delete_zone'>
+            <div className='upload_zone'>
+              <Button className='upload_btn' onClick={handleUpload}>
+                Upload
+              </Button>
+            </div>
+            <div className='delete_zone'>
+              <Button className='delete_btn' onClick={handleDelete}>
+                Delete
+              </Button>
+            </div>
+
           </div>
-          <div className='upload_zone'>
-            <Button className='upload_btn' onClick={handleUpload}>
-              Upload
-            </Button>
-          </div>
+          
+          
         </div>
 
         <div className='choose_function_zone'>

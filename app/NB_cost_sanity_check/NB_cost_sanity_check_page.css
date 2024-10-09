@@ -49,7 +49,7 @@
   .upload_file_zone, .choose_function_zone{
     height: 100%;
     width: 30%;
-    background-color: #0e8b94;
+    background-color: #EBDEBE;
     display: flex;
     flex-direction: column; /* 讓子元素垂直排列 */
     outline: 4px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
@@ -91,6 +91,8 @@
     color: #010101;
   }
 
+  
+
   .message_zone_title{
     width: 100%;
     height: 15%;
@@ -115,14 +117,42 @@
     color: #010101;
   }
 
-  .bom_btn_zone, .mspeke_btn_zone, .CPC_btn_zone, .hard_qual_matrix_btn_zone, .delete_zone, .upload_zone{
+  .bom_btn_zone, .mspeke_btn_zone, .CPC_btn_zone, .hard_qual_matrix_btn_zone{
     background-color: #EBDEBE;
     width: 100%;
     height: 15%; 
     display: flex;
     align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
+    margin-top: 5%;
   }
+
+  .upload_and_delete_zone{
+    background-color: #EBDEBE;
+    width: 100%;
+    height: 30%; 
+    display: flex;
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+    
+  }
+  .delete_zone, .upload_zone{
+
+    background-color: #EBDEBE;
+    width: 100%;
+    height: 100%; 
+    display: flex;
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+    
+  }
+  .upload_zone{
+    padding-left: 8%;
+  }
+  .delete_zone{
+    padding-right: 8%;
+  }
+
   .cost_check_zone, .HQM_based_component_check_zone, .BOM_based_component_check_zone, .CPC_based_component_check_zone{
     background-color: #EBDEBE;
     width: 100%;
@@ -136,14 +166,14 @@
     background-color: #b0aeae;
     border-radius: 30px;
     width: 80%;
-    height: 60%;
+    height: 70%;
     font-family: 'Jockey One';
     font-size: 1.5em;
     color: black;
     font-weight: 400;
     
   }
-
+  
   .hidden-file-input {
     display: none;
   }
@@ -154,7 +184,6 @@
     font-family: 'Jockey One';
     display: flex;
     align-items: center; /* 垂直方向上居中對齊 */
-    
     margin-left: 3%;
     flex-direction: column;
 
