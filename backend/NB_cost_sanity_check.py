@@ -138,33 +138,41 @@ def bom_cost_check():
             # Define key headers
             av_header = 'AV\nLevel 2'
             sa_header = 'SA\nLevel 3'
-            component_header = 'Component\nLevel 4'
-            
-            #重新命名COLUMN 因為錢的地方TITLE會是空的 所以要加上COLUMN(且column會多個av sa可能性!)
+            component_header4 = 'Component\nLevel 4'
+            component_header5 = 'Component\nLevel 5'
+
+            # Renaming logic
             av_count = 1
             sa_count = 1
+            component4_count = 1
             new_columns = {}
             
             for i in range(len(program_matrix_headers)):
                 col_name = program_matrix_headers[i]
                 
                 if av_header in col_name:
-                    av_count = 1  # Reset counter when AV header is found
+                    av_count = 1
                     
                 if sa_header in col_name:
-                    sa_count = 1  # Reset counter when SA header is found
+                    sa_count = 1
+
+                if component_header4 in col_name:
+                    component4_count = 1
                     
-                # Rename columns between 'AV\nLevel 2' and 'SA\nLevel 3' 如果很多site會多個av可能性
                 if av_header in program_matrix_headers and program_matrix_headers.index(av_header) < i < program_matrix_headers.index(sa_header):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'av_price{av_count}'
                         av_count += 1
 
-                # Rename columns between 'SA\nLevel 3' and 'Component\nLevel 4' 如果很多site會多個sa可能性
-                if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header):
+                if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header4):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'sa_price{sa_count}'
                         sa_count += 1
+
+                if component_header4 in program_matrix_headers and program_matrix_headers.index(component_header4) < i < program_matrix_headers.index(component_header5):
+                    if 'Unnamed' in col_name:
+                        new_columns[col_name] = f'cmp_price{component4_count}'
+                        component4_count += 1
             
             # Apply the renaming
             df.rename(columns=new_columns, inplace=True)
@@ -175,45 +183,62 @@ def bom_cost_check():
             block_start_indices = df.index[df['Release(s)'].notna() & (df['Release(s)'] != '')].tolist()
 
             error_result = []
+            Category_place = {}
 
+            for index, row in df.iterrows():  #記起來Category的位置
+                if pd.notna(row['Category / Manufacturing Comments']) and pd.isna(row['Release(s)']) and pd.isna(row['Description']):
+                    Category_place[index] = row['Category / Manufacturing Comments']
+            #print(abc)
+ 
             for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
                 block = df.iloc[start:end]
                 error_result_temp = []  # Initialize a flat list for results
 
                 # Add block metadata
+                error_result_temp.append(' ') #保留空位
                 error_result_temp.append(block.iloc[0]['AV\nLevel 2'])
                 error_result_temp.append(block.iloc[0]['Description'])
+
                 
                 # Function to compute total differences
                 def calculate_difference(av_column, sa_column):
                     if av_column in block.columns and sa_column in block.columns:
                         total_av = block[av_column].sum()
                         total_sa = block[sa_column].sum()
-                        total_diff = total_av - total_sa
-                        if abs(total_diff) > 0.01:
+                        total_diff = total_av - total_sa 
+                        if abs(total_diff) > 0.0099:
                             return total_diff
                     return " "
 
                 # Append calculated differences directly to the error_result_temp list
+                
                 error_result_temp.append(calculate_difference('av_price1', 'sa_price1'))
-                error_result_temp.append(calculate_difference('av_price2', 'sa_price2'))
-                error_result_temp.append(calculate_difference('av_price3', 'sa_price3'))
-                error_result_temp.append(calculate_difference('av_price4', 'sa_price4'))
-
+                #error_result_temp.append(calculate_difference('av_price2', 'sa_price2'))
+                #error_result_temp.append(calculate_difference('av_price3', 'sa_price3'))
+                #error_result_temp.append(calculate_difference('av_price4', 'sa_price4'))
+            
                 # Append the flat list to error_result
-                if any(item != " " for item in error_result_temp[2:]):  # Check only the difference elements
-                    error_result.append(error_result_temp)
-                    
+                keys_to_remove = []
+                if any(item != " " for item in error_result_temp[3:]):  # 把有價錢差距的av存起來 2開始是因為前01是存非價錢差距的東西
+                    for key, value in Category_place.items():
+                        if key<start:
+                            error_result.append([value])
+                            keys_to_remove.append(key)
+                    error_result.append(error_result_temp)   
+
+                for key in keys_to_remove:
+                    del Category_place[key]
+                            
+        #print(error_result)
+
         wb = Workbook() #創建工作簿並將結果寫入到指定的工作表中
         ws = wb.active
         ws.title = 'BOM Cost Check'
 
-        ws.append(['AV Level 2', 'Description', 'AV1 Price Difference', 'AV2 Price Difference', 'AV3 Price Difference', 'AV4 Price Difference'])    #寫入header
-
+        ws.append(['Category','AV Level 2', 'Description', 'AV1 Price Difference', 'AV2 Price Difference', 'AV3 Price Difference', 'AV4 Price Difference'])    #寫入header
+        
         for row in error_result:    #寫入數據
             ws.append(row)
-
-        
         excel_buffer = BytesIO()    #保存工作簿到BytesIO對象
         wb.save(excel_buffer)
         excel_buffer.seek(0)
@@ -251,11 +276,13 @@ def bom_cost_check_for_highlight_file():
             # Define key headers
             av_header = 'AV\nLevel 2'
             sa_header = 'SA\nLevel 3'
-            component_header = 'Component\nLevel 4'
+            component_header4 = 'Component\nLevel 4'
+            component_header5 = 'Component\nLevel 5'
 
             # Renaming logic
             av_count = 1
             sa_count = 1
+            component4_count = 1
             new_columns = {}
             
             for i in range(len(program_matrix_headers)):
@@ -266,16 +293,24 @@ def bom_cost_check_for_highlight_file():
                     
                 if sa_header in col_name:
                     sa_count = 1
+
+                if component_header4 in col_name:
+                    component4_count = 1
                     
                 if av_header in program_matrix_headers and program_matrix_headers.index(av_header) < i < program_matrix_headers.index(sa_header):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'av_price{av_count}'
                         av_count += 1
 
-                if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header):
+                if sa_header in program_matrix_headers and program_matrix_headers.index(sa_header) < i < program_matrix_headers.index(component_header4):
                     if 'Unnamed' in col_name:
                         new_columns[col_name] = f'sa_price{sa_count}'
                         sa_count += 1
+
+                if component_header4 in program_matrix_headers and program_matrix_headers.index(component_header4) < i < program_matrix_headers.index(component_header5):
+                    if 'Unnamed' in col_name:
+                        new_columns[col_name] = f'cmp_price{component4_count}'
+                        component4_count += 1
             
             df.rename(columns=new_columns, inplace=True)
 
@@ -286,38 +321,44 @@ def bom_cost_check_for_highlight_file():
             # To store the positions of the cells that need to be colored
             cells_to_color = []
 
-            for start, end in zip(block_start_indices, block_start_indices[1:] + [None]):
+            for start, end in zip(block_start_indices, block_start_indices[1:] + [None]): #這邊是遍歷每一個block
                 block = df.iloc[start:end]
                 error_result_temp = []
 
                 error_result_temp.append(block.iloc[0]['AV\nLevel 2'])
                 error_result_temp.append(block.iloc[0]['Description'])
                 
-                def calculate_difference(av_column, sa_column):
+                def calculate_difference(av_column, sa_column, cmp_column):
                     if av_column in block.columns and sa_column in block.columns:
                         total_av = block[av_column].sum()
                         total_sa = block[sa_column].sum()
                         total_diff = total_av - total_sa
-                        if abs(total_diff) > 0.01:
+                        if abs(total_diff) > 0.0099 :
                             # Find the cell coordinates to color
                             av_cell = block[av_column].iloc[0]
                             av_row_index = block.index[0]
                             cells_to_color.append((av_column, av_row_index + 1)) # add 1 to row index to match Excel's 1-based indexing
-                            return total_diff
-                        else:
-                            return " "  # No significant difference
+
+              
+                    for index, row in block.iterrows():
+                        if pd.notna(row['SA\nLevel 3']) and pd.isna(row[sa_column]):
+                            #print((sa_column, index + 1))
+                            cells_to_color.append((sa_column, index + 1))
+                        
+                        if pd.notna(row['Component\nLevel 4']) and pd.isna(row[cmp_column]):
+                            #print((cmp_column, index + 1))
+                            cells_to_color.append((cmp_column, index + 1))
+
+
                     return " "  # Columns not found
   
 
-                error_result_temp.append(calculate_difference('av_price1', 'sa_price1'))
-                error_result_temp.append(calculate_difference('av_price2', 'sa_price2'))
-                error_result_temp.append(calculate_difference('av_price3', 'sa_price3'))
-                error_result_temp.append(calculate_difference('av_price4', 'sa_price4'))
+                calculate_difference('av_price1', 'sa_price1', 'cmp_price1')
+                #error_result_temp.append(calculate_difference('av_price2', 'sa_price2'))
+                #error_result_temp.append(calculate_difference('av_price3', 'sa_price3'))
+                #error_result_temp.append(calculate_difference('av_price4', 'sa_price4'))
 
-                if any(item != " " for item in error_result_temp[2:]):
-                    error_result.append(error_result_temp)
-                    
-        print(cells_to_color)
+        #print(cells_to_color)
 
         # Apply color formatting to the original Excel file
         fill = PatternFill(start_color="FFEE1111", end_color="FFEE1111", fill_type="solid")
@@ -477,7 +518,7 @@ def bom_based_component_check():
             df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
 
             #選出Mspeke需要的部分
-            df_mspeke = df_mspeke.iloc[:, [0, 1, 4, 8]].dropna(subset=[df_mspeke.columns[1]])
+            df_mspeke = df_mspeke.iloc[:, [0, 1, 4, 7, 8]].dropna(subset=[df_mspeke.columns[1]])
             df_hqm = df_hqm[['HP Part No.', 'Qual Status']].dropna(subset=['HP Part No.'])
             hqm_dict = df_hqm.set_index('HP Part No.')['Qual Status'].to_dict()
 
@@ -485,10 +526,19 @@ def bom_based_component_check():
             df_pm['Max_MSPEKE_Item'] = None
             df_pm['Max_MSPEKE_Item_Note'] = None
             df_pm['HQM status'] = None
+
+            AV_pn = 0
             
+
             for index, row in df_pm.iterrows():
+                if pd.notna(row['AV\nLevel 2']):
+                    AV_pn = row['AV\nLevel 2']
+                    #print(AV_pn)
+
                 if pd.notna(row['Component\nLevel 4']):  #For RCTO也需要對照mspeke
                     cmp_level4 = row['Description']
+                    
+                    
                     if 'lbl' not in cmp_level4.lower() and 'doc' not in cmp_level4.lower() and 'icon' not in cmp_level4.lower(): #把不需要對照的刪掉
                         max_ratio = 0
                         max_mspeke_item = None
@@ -501,10 +551,19 @@ def bom_based_component_check():
                                     cmpji3_level4_numbers = re.findall(r'\d+', cmp_level4)
                                     cmp_level4_numbers_str = ''.join(cmpji3_level4_numbers)
                                     ratio = smith_waterman(cmp_level4_numbers_str, item['Feature Full Name']) #我發現IC如果只取數字來比可能會比較好
-                                    if ratio > max_ratio:
+
+                                    if ratio > max_ratio: 
                                         max_ratio = ratio
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
+                                    #print(item['AV # in SCM'])
+                                    if item['AV # in SCM'] == AV_pn:
+                                        #print("123123")
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                                        break
+                        
+
                         elif 'CONN' in cmp_level4_array or 'CON' in cmp_level4_array or 'CN' in cmp_level4_array:
                             for _, item in df_mspeke.iterrows():
                                 if item['Feature Category'] == 'Connectors' or item['Feature Category'] == 'Power Cord':
@@ -513,6 +572,23 @@ def bom_based_component_check():
                                         max_ratio = ratio  
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
+                                    if item['AV # in SCM'] == AV_pn:
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                                        break
+
+                        elif 'PNL' in cmp_level4_array:
+                            for _, item in df_mspeke.iterrows():
+                                if 'Panel' in item['Feature Category']:
+                                    ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
+                                    if ratio > max_ratio:
+                                        max_ratio = ratio  
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                                    if item['AV # in SCM'] == AV_pn:
+                                        max_mspeke_item = item['Feature Full Name']
+                                        max_mspeke_item_note = item['Notes']
+                                        break
                         else:
                             for _, item in df_mspeke.iterrows():
                                 ratio = smith_waterman(cmp_level4, item['Feature Full Name'])
@@ -520,12 +596,18 @@ def bom_based_component_check():
                                     max_ratio = ratio
                                     max_mspeke_item = item['Feature Full Name']
                                     max_mspeke_item_note = item['Notes']
+                                if item['AV # in SCM'] == AV_pn:  #對照如果mspek的AV # in SCM有對到就停止計算
+                                    #print(AV_pn)
+                                    max_mspeke_item = item['Feature Full Name']
+                                    max_mspeke_item_note = item['Notes']
+                                    break
+                        
                     
 
                         # 插入結果到對應的行
                         df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
                         df_pm.at[index, 'Max_MSPEKE_Item_Note'] = max_mspeke_item_note
-                        df_pm.at[index, 'Description'] = ' '*4 +df_pm.at[index, 'Description'] #所 
+                        df_pm.at[index, 'Description'] = ' '*8 +df_pm.at[index, 'Description'] #所 
                         #print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
 
                         if row['Component\nLevel 4'] not in hqm_dict:
@@ -533,10 +615,11 @@ def bom_based_component_check():
                         else:
                             qual_status_value = hqm_dict[row['Component\nLevel 4']]
                             df_pm.at[index, 'HQM status'] = qual_status_value
+
                 if pd.notna(row['SA\nLevel 3']):
-                    df_pm.at[index, 'Description'] = ' '*2 +df_pm.at[index, 'Description']
+                    df_pm.at[index, 'Description'] = ' '*4 +df_pm.at[index, 'Description']
                 if pd.notna(row['Component\nLevel 5']):
-                    df_pm.at[index, 'Description'] = ' '*6 +df_pm.at[index, 'Description']
+                    df_pm.at[index, 'Description'] = ' '*12 +df_pm.at[index, 'Description']
                 
                 
         output = BytesIO()
