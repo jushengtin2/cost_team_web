@@ -1,18 +1,34 @@
+"use client";
 import '../styles/main.css';
 import Link from "next/link";
 import Button from '@mui/material/Button';
 import Head from 'next/head';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import React, { useState } from 'react';
+import WbSunnyOutlinedIcon from '@mui/icons-material/WbSunnyOutlined';
+import useDarkMode from '../hooks/useDarkMode'; // 引入dark-mode的 Hook
 
 export default function Home() {
+
+
+  const { isDarkMode, toggleDarkMode } = useDarkMode(); // 使用 Dark Mode Hook
+  
+  
   return (
     
     <div className='main_page'>
       <title>Cost team web</title>
-     
 
       <div className='title_zone'>
         <h1>COST TEAMS WEB</h1>
-
+        <button className='dark_mode_btn' onClick={toggleDarkMode} >
+          {isDarkMode ? (
+          <WbSunnyOutlinedIcon style={{ fontSize: '50px' }} /> // 亮模式圖標
+        ) : (
+          <DarkModeIcon style={{ fontSize: '50px' }} /> // 暗模式圖標
+        )}
+        </button>
+    
       </div>
 
       <div className='function_zone1'>

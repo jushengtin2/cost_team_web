@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Jockey+One&display=swap');
 
+
+
 /* 設置 main_page 來確保佔滿整個視口 */
 .main_page {
     display: flex;
@@ -9,25 +11,26 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    outline: 6px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
+    outline: 6px solid #000000; /* 使用 outline 來設置有顏色的邊框 */
     outline-offset: -15px; /* 設置 outline 與邊框之間的距離，使其內縮 */
+    
   }
   
   /* title_zone 佔滿 10% 的高度 */
   .title_zone {
     flex: 0 0 20%;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    
+    justify-content: center; /* 使項目之間的間距相等 */
+    align-items:center;
     box-sizing: border-box;
     font-family: 'Jockey One';
-    font-size: 5em;
-    color: black;
     font-weight: 400;
+    font-size: 6em;
+    color: black;
     background-color: #EBDEBE;
-    
   }
-  
+ 
   /* function_zone 佔滿 45% 的高度 */
   .function_zone1, .function_zone2 {
     flex: 0 0 40%;
@@ -63,7 +66,7 @@
   /* 統一設置按鈕樣式 */
   .cost_sanity_check_btn {
     background-color: #b0aeae;
-    border-radius: 40px;
+    border-radius: 35px;
     width: 100%;
     height: 100%;
     font-family: 'Jockey One';
@@ -78,4 +81,38 @@
   .cost_sanity_check_link{
     width: 100%;
     height: 100%;
+  }
+
+  .dark_mode_btn{
+   position: absolute;
+   right: 3%;
+   top: 6%;
+   display: flex; 
+   
+  }
+
+  .title_zone.dark-mode{
+    background-color: #121212;
+    color: #df5b2f;
+  }
+
+
+  .function_zone1.dark-mode ,.function_zone2.dark-mode {
+    background-color: #121212;
+    
+  }
+
+  .main_page.dark-mode
+  {
+    outline: 0px solid #121212; /* 使用 outline 來設置有顏色的邊框 */
+   
+  }
+
+  .cost_sanity_check_btn.dark-mode{
+    outline: 8px solid #df5b2f;  
+    outline-offset: -2px;
+    background-color: #121212;
+    color: #dbdada;
+    font-weight: 150;
+    border-radius: 35px;
   }
