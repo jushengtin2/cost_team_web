@@ -111,7 +111,7 @@ export default function NB_CostSanityCheckPage() {
  
     try {
  
-      const response = await fetch('http://127.0.0.1:8080/NB_upload', { //測試點
+      const response = await fetch('http://15.38.111.74:8080/NB_upload', { //測試點
         method: 'POST',
         mode: 'cors',
         body: formData,
@@ -257,7 +257,7 @@ export default function NB_CostSanityCheckPage() {
     setDownloadFileName2('');
     setLoading(true); // 顯示旋轉動畫
     try {
-      const response = await fetch('http://127.0.0.1:8080/NB_bom_based_component_check', {
+      const response = await fetch('http://15.38.111.74:8080/NB_bom_based_component_check', {
         method: 'GET',
         mode: 'cors',
       });

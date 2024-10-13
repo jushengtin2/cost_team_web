@@ -8,7 +8,7 @@ export default function useDarkMode() {
     const darkModeFromStorage = localStorage.getItem('darkMode') === 'true';
     setIsDarkMode(darkModeFromStorage);
     
-    // 初始化時應用 dark-mode 樣式
+    // 根據瀏覽器記憶決定初始化時要不要應用 dark-mode 樣式
     const allElements = document.querySelectorAll('body, body *');
     allElements.forEach((element) => {
       element.classList.toggle('dark-mode', darkModeFromStorage);

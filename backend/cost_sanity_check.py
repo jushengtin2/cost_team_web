@@ -9,7 +9,7 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
+CORS(app, resources={r"/*": {"origins": "http://15.38.111.74:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
 
 UPLOAD_FOLDER = './uploads'
 if not os.path.exists(UPLOAD_FOLDER):
@@ -45,13 +45,12 @@ def upload_file():
     file_names['mspeke_file'] = mspeke_file.filename
     file_names['hardware_qual_matrix_file'] = hardware_qual_matrix_file.filename
 
-    print('1')
     try:
         # 檢查 Program Matrix 文件
         with pd.ExcelFile(program_matrix_file) as xls:
             if 'Program Matrix' not in xls.sheet_names:
                 raise ValueError("Sheet 'Program Matrix' not found")
-            print('2')    
+           
             df = pd.read_excel(xls, sheet_name='Program Matrix', skiprows=4, usecols="A:I")
             program_matrix_headers = list(df.columns)  # 檢查標題
 
@@ -71,11 +70,11 @@ def upload_file():
             if program_matrix_headers != expected_program_matrix_headers:
                 
                 raise ValueError("Headers in Program Matrix do not match the expected values.")
-            print('3')    
+            
         # 檢查 Mspeke 文件
         with pd.ExcelFile(mspeke_file) as xls:
             if 'HW' not in xls.sheet_names:
-                print('4')
+               
                 raise ValueError("Sheet 'HW' not found")
 
             df = pd.read_excel(xls, sheet_name='HW', skiprows=4)
@@ -83,18 +82,15 @@ def upload_file():
             if 'Feature Full Name' not in mspeke_headers or 'Notes' not in mspeke_headers:
                 
                 raise ValueError("'Feature Full Name' or 'Notes' not found in Mspeke headers")
-            print('5')    
-            print('ssqq4')
+        
         # 檢查 Hardware Qual Matrix 文件
         with pd.ExcelFile(hardware_qual_matrix_file) as xls:
-            print('ssqq')
             df = pd.read_excel(xls, skiprows=1)
             hqm_headers = list(df.columns)  # 檢查標題
             print(hqm_headers)
             if 'HP Part No.' not in hqm_headers:
-                print('qq')
                 raise ValueError("'HP Part No.' not found in HQM headers")
-            print('6')
+
         # 返回成功訊息
         return jsonify({"message": "Files uploaded and validated successfully"}), 200
 
@@ -333,8 +329,6 @@ def hqm_based_component_check():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 @app.route('/bom_based_component_check', methods=['GET'])
 def bom_based_component_check():
