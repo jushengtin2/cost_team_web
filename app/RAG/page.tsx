@@ -69,10 +69,10 @@ export default function Cost_team_GPT() {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: input })  // 传递用户输入的 prompt
+                body: JSON.stringify({ prompt: message_input })  // 传递用户输入的 prompt
             });
             
-            const data = await response.json();
+            const data = await response.json(); 
     
             // 添加 AI 的回复
             const aiMessage = { sender: 'AI', text: data.response };

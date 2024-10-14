@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Jockey+One&display=swap');
 
 
- .DT_cost_sanity_check_page {
+ .CRT_page {
     display: flex;
     flex-direction: column;
     height: 100vh;  /* 確保佔滿整個視口高度 */
@@ -12,20 +12,160 @@
     background-color: #EBDEBE;
   }
 
-  .DT_cost_sanity_check_title_zone {
-    flex: 0 0 20%;
+  .CRT_page_title{
     display: flex;
+    height: 10%;
+    align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
     font-family: 'Jockey One';
-    font-size: 4.5em;
-    color: black;
-    font-weight: 400;
+    font-size: 2em;
     background-color: #EBDEBE;
+
   }
 
-  .DT_go_back_btn{
+  .CRT_main_page{
+    display: flex;
+    width: 100%;
+    height: 90%;
+    flex-direction: row;
+  }
+
+  .CRT_input_zone {
+  
+    display: flex;
+    flex-direction: column;
+    width: 25%;
+    height: 100%;
+    background-color: #EBDEBE;
+    outline: 4px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
+    outline-offset: -10px; /* 設置 outline 與邊框之間的距離，使其內縮 */
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+  }
+
+
+  .CRT_output_zone{
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+    height: 100%;
+    background-color: #EBDEBE;
+    align-items: center; /* 垂直方向上居中對齊 */
+    outline: 4px solid #0d0d0e; /* 使用 outline 來設置有顏色的邊框 */
+    outline-offset: -10px; /* 設置 outline 與邊框之間的距離，使其內縮 */
+  }
+
+ 
+  .CRT_input_title{
+    display: flex;
+    width: 100%;
+    height: 10%;
+    font-family: 'Jockey One';
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+    font-size: 1.5em;
+   
+    
+  }
+
+  .CRT_output_title{
+    display: flex;
+    width: 100%;
+    height: 10%;
+    font-family: 'Jockey One';
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+    font-size: 1.5em;
+    
+  }
+
+  .i1_zone{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 90%;
+    height: 13.5%;
+  }
+
+  .i1_zone_title{
+    display: flex;
+    width: 40%;
+    font-family: 'Jockey One';
+    font-size: 1.3em;
+  }
+  .CRT_upload_btn{
+    display: flex;
+    width: 60%;
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+  }
+
+  .btnn_zone{
+    display: flex;
+    width: 60%;
+    height: 9%;
+    
+    justify-content: center;
+  }
+
+
+  .i1{
+    display: flex;
+    width: 50%;
+    height:50%;
+    align-items: center; /* 垂直方向上居中對齊 */
+    justify-content: center;
+  }
+
+
+  .o1_zone{
+    display: flex;
+    width: 90%;
+    height:30%;
+  }
+  .o1_zone_title{
+    font-size: 1.2em;
+    font-family: 'Jockey One';
+  }
+
+  .CRT_btn{
+    background-color: #383232;
+    color: #dbdada;
+    width: 100%;
+    height: 70%;
+    font-family: 'Jockey One';
+    border-radius: 30px;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .go_back_btn{
     color: black;
     background-color: #EBDEBE;
     position: absolute;
@@ -38,7 +178,7 @@
     
   }
 
-  .DT_dark_mode_btn{
+  .dark_mode_btn{
     position: absolute;
     right: 3%;
     top: 7.5%;
@@ -47,7 +187,7 @@
     
    }
 
-  .DT_function_zone {
+  .function_zone {
     flex: 0 0 80%;
     width: 100%;
     display: flex;
@@ -56,7 +196,7 @@
     background-color: #EBDEBE;
   }
 
-  .DT_upload_file_zone, .DT_choose_function_zone{
+  .upload_file_zone, .choose_function_zone{
     height: 100%;
     width: 30%;
     background-color: #EBDEBE;
@@ -67,14 +207,14 @@
     color: #010101;
   }
   
-  .DT_message_plus_result_zone{
+  .message_plus_result_zone{
     
     height: 100%;
     width: 60%;
     background-color: #EBDEBE;
   }
 
-  .DT_message_zone{
+  .message_zone{
     height: 60%;
     width: 100%;
     background-color: #EBDEBE;
@@ -83,7 +223,7 @@
     color: #010101;
   }
 
-  .DT_result_zone{
+  .result_zone{
     height: 40%;
     width: 100%;
     background-color: #EBDEBE;
@@ -91,7 +231,7 @@
     outline-offset: -10px; /* 設置 outline 與邊框之間的距離，使其內縮 */
     color: #010101;
   }
-  .DT_upload_file_zone_title, .DT_choose_function_title{
+  .upload_file_zone_title, .choose_function_title{
     width: 100%;
     height: 10%;
     
@@ -105,7 +245,7 @@
 
   
 
-  .DT_message_zone_title{
+  .message_zone_title{
     width: 100%;
     height: 15%;
     
@@ -117,7 +257,7 @@
     
   }
 
-  .DT_result_title{
+  .result_title{
     width: 100%;
     height: 25%;
     
@@ -129,7 +269,7 @@
 
   }
 
-  .DT_bom_btn_zone, .DT_mspeke_btn_zone, .DT_CPC_btn_zone, .DT_hard_qual_matrix_btn_zone{
+  .bom_btn_zone, .mspeke_btn_zone, .CPC_btn_zone, .hard_qual_matrix_btn_zone{
     
     width: 100%;
     height: 15%; 
@@ -139,7 +279,7 @@
     padding-top: 5%;
   }
 
-  .DT_upload_and_delete_zone{
+  .upload_and_delete_zone{
     
     width: 100%;
     height: 30%; 
@@ -148,7 +288,7 @@
     justify-content: center;
     
   }
-  .DT_delete_zone, .DT_upload_zone{
+  .delete_zone, .upload_zone{
 
    
     width: 100%;
@@ -158,14 +298,14 @@
     justify-content: center;
     
   }
-  .DT_upload_zone{
+  .upload_zone{
     padding-left: 8%;
   }
-  .DT_delete_zone{
+  .delete_zone{
     padding-right: 8%;
   }
 
-  .DT_cost_check_zone, .DT_HQM_based_component_check_zone, .DT_BOM_based_component_check_zone, .DT_CPC_based_component_check_zone{
+  .cost_check_zone, .HQM_based_component_check_zone, .BOM_based_component_check_zone, .CPC_based_component_check_zone{
     
     width: 100%;
     height: 22.5%; 
@@ -173,7 +313,7 @@
     align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
   }
-  .DT_bom_btn, .DT_mspeke_btn, .DT_hard_qual_matrix_btn, .DT_CPC_btn, .DT_delete_btn, .DT_upload_btn, .DT_cost_check_btn, .DT_HQM_based_component_check_btn, .DT_BOM_based_component_check_btn, .DT_CPC_based_component_check_btn{
+  .bom_btn, .mspeke_btn, .hard_qual_matrix_btn, .CPC_btn, .delete_btn, .upload_btn, .cost_check_btn, .HQM_based_component_check_btn, .BOM_based_component_check_btn, .CPC_based_component_check_btn{
     
     background-color: #b0aeae;
     border-radius: 30px;
@@ -191,7 +331,7 @@
     display: none;
   }
 
-  .DT_message{
+  .message{
     font-size: 1.2em;
     color: #010101;
     font-family: 'Jockey One';
@@ -202,7 +342,7 @@
 
   }
 
-  .DT_download_zone{
+  .download_zone{
     font-size: 1.5em;
     color: #010101;
     font-family: 'Jockey One';
@@ -212,33 +352,33 @@
 
   }
 
-  .DT_spinner{
+  .spinner{
     display: flex;
     align-items: center; /* 垂直方向上居中對齊 */
     justify-content: center;
     color: #010101;
   }
 
-  .DT_handleDownload{
+  .handleDownload{
     font-size: 1em;
     color: #51514e;
     font-family: 'Jockey One';
   }
 
-  .DT_cost_sanity_check_title_zone.dark-mode, .DT_go_back_btn.dark-mode, .DT_dark_mode_btn.dark-mode{
+  .NB_cost_sanity_check_title_zone.dark-mode, .go_back_btn.dark-mode, .dark_mode_btn.dark-mode{
     background-color: #121212;
     color: #df5b2f;
   }
  
 
-   .DT_upload_file_zone.dark-mode, .DT_choose_function_zone.dark-mode, .DT_message_zone.dark-mode,.DT_result_zone.dark-mode {
+   .upload_file_zone.dark-mode, .choose_function_zone.dark-mode, .message_zone.dark-mode,.result_zone.dark-mode {
     background-color: #121212;
     color: #dbdada;
     outline: 5px solid #df5b2f; /* 使用 outline 來設置有顏色的邊框 */
     outline-offset: -10px; /* 設置 outline 與邊框之間的距離，使其內縮 */
    }
 
-   .DT_bom_btn.dark-mode, .DT_mspeke_btn.dark-mode, .DT_hard_qual_matrix_btn.dark-mode, .DT_CPC_btn.dark-mode, .DT_delete_btn.dark-mode, .DT_upload_btn.dark-mode{
+   .bom_btn.dark-mode, .mspeke_btn.dark-mode, .hard_qual_matrix_btn.dark-mode, .CPC_btn.dark-mode, .delete_btn.dark-mode, .upload_btn.dark-mode{
     background-color: #121212;
     color: #dbdada;
     outline: 5px solid #dbdada; /* 使用 outline 來設置有顏色的邊框 */
@@ -246,22 +386,22 @@
    }
 
 
-   .DT_cost_check_btn.dark-mode:disabled, .DT_HQM_based_component_check_btn.dark-mode:disabled, .DT_BOM_based_component_check_btn.dark-mode:disabled, .DT_CPC_based_component_check_btn.dark-mode:disabled{
+   .cost_check_btn.dark-mode:disabled, .HQM_based_component_check_btn.dark-mode:disabled, .BOM_based_component_check_btn.dark-mode:disabled, .CPC_based_component_check_btn.dark-mode:disabled{
     color: rgb(68, 66, 66);
     outline: 5px solid rgb(68, 66, 66); 
     background-color: #121212;
    }
-   .DT_cost_check_btn.dark-mode, .DT_HQM_based_component_check_btn.dark-mode, .DT_BOM_based_component_check_btn.dark-mode,.DT_CPC_based_component_check_btn.dark-mode{
+   .cost_check_btn.dark-mode, .HQM_based_component_check_btn.dark-mode, .BOM_based_component_check_btn.dark-mode,.CPC_based_component_check_btn.dark-mode{
     background-color: #121212;
     outline: 5px solid #dbdada; /* 使用 outline 來設置有顏色的邊框 */
     outline-offset: -2px; /* 設置 outline 與邊框之間的距離，使其內縮 */
     color: #dbdada;
    }
-   .DT_message.dark-mode{
+   .message.dark-mode{
     color: #dbdada;
    }
 
-  .DT_download_zone.dark-mode, .DT_handleDownload.dark-mode{
+  .download_zone.dark-mode, .handleDownload.dark-mode{
     color: #60a8d8;
    
    }

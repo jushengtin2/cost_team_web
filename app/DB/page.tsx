@@ -330,7 +330,7 @@ export default function NB_CostSanityCheckPage() {
       <title>DB</title>
       
 
-      <div className='NB_cost_sanity_check_title_zone'>
+      <div className='DB_title_zone'>
        <Link href="/" onClick={handleDelete} className="go_back_btn">
         <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
         Menu
@@ -338,75 +338,75 @@ export default function NB_CostSanityCheckPage() {
         <h1>DB</h1>
       </div>
 
-      <div className='function_zone'>
-        <div className='upload_file_zone'>
-          <div className='upload_file_zone_title'>
+      <div className='DB_function_zone'>
+        <div className='DB_upload_file_zone'>
+          <div className='DB_upload_file_zone_title'>
             abc
           </div>
-          <div className='bom_btn_zone'> {/* 檢查 programMatrixFileName 是否為空或正在加載*/}
-            <Button className='bom_btn' onClick={callSupersetApi}>
+          <div className='call_api_zone'> {/* 檢查 programMatrixFileName 是否為空或正在加載*/}
+            <Button className='call_api' onClick={callSupersetApi}>
               call api
             </Button>
           </div>
-          <div className='mspeke_btn_zone'>
-            <Button className='mspeke_btn' onClick={() => handleButtonClick(mspekeFileInputRef)}>
+          <div className='call_api_zone2'>
+            <Button className='call_api2' onClick={() => handleButtonClick(mspekeFileInputRef)}>
             function2
             </Button>
           </div>
-          <div className='hard_qual_matrix_btn_zone'>
-            <Button className='hard_qual_matrix_btn' onClick={() => handleButtonClick(hardwareQualMatrixFileInputRef)}>
+          <div className='call_api_zone3'>
+            <Button className='call_api3' onClick={() => handleButtonClick(hardwareQualMatrixFileInputRef)}>
             function3
             </Button>
           </div>
-          <div className='CPC_btn_zone'>
-            <Button className='CPC_btn' onClick={() => handleButtonClick(CPCFileInputRef)}>
+          <div className='call_api_zone4'>
+            <Button className='call_api4' onClick={() => handleButtonClick(CPCFileInputRef)}>
             function4
             </Button>
           </div>
-          <div className='delete_zone'>
-            <Button className='delete_btn' onClick={handleDelete}>
+          <div className='call_api_zone5'>
+            <Button className='call_api5' onClick={handleDelete}>
             function5
             </Button>
           </div>
-          <div className='upload_zone'>
-            <Button className='upload_btn' onClick={handleUpload}>
+          <div className='call_api_zone6'>
+            <Button className='call_api6' onClick={handleUpload}>
             function6
             </Button>
           </div>
         </div>
 
-        <div className='choose_function_zone'>
-          <div className='choose_function_title'>
+        <div className='DB_choose_function_zone'>
+          <div className='DB_choose_function_title'>
             abc
           </div>
-          <div className='cost_check_zone'>
-            <Button className='cost_check_btn' onClick={handle_BOM_Cost_Check} disabled={!uploadBOMComplete} >
+          <div className='DB_cost_check_zone'>
+            <Button className='DB_cost_check_btn' onClick={handle_BOM_Cost_Check} disabled={!uploadBOMComplete} >
             function7
             </Button>
           </div>
-          <div className='HQM_based_component_check_zone'>
-            <Button className='HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
+          <div className='DB_HQM_based_component_check_zone'>
+            <Button className='DB_HQM_based_component_check_btn' onClick={handle_HQM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
             function8
             </Button>
           </div>
-          <div className='BOM_based_component_check_zone'>
-            <Button className='BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
+          <div className='DB_BOM_based_component_check_zone'>
+            <Button className='DB_BOM_based_component_check_btn' onClick={handle_BOM_based_component_Check} disabled={!uploadBOM_MSPEKE_HQM_Complete} >
             function9
             </Button>
           </div>
-          <div className='CPC_based_component_check_zone'>
-            <Button className='CPC_based_component_check_btn' onClick={handle_CPC_based_component_Check} disabled={!upload_CPC_Complete} >
+          <div className='DB_CPC_based_component_check_zone'>
+            <Button className='DB_CPC_based_component_check_btn' onClick={handle_CPC_based_component_Check} disabled={!upload_CPC_Complete} >
             function10
             </Button>
           </div>
         </div>
 
-        <div className='message_plus_result_zone'>
-          <div className='message_zone'>
-            <div className='message_zone_title'>
+        <div className='DB_message_plus_result_zone'>
+          <div className='DB_message_zone'>
+            <div className='DB_message_zone_title'>
               Message Box
             </div>
-            <div className='message'>
+            <div className='DB_message'>
               {programMatrixFileName && <div>Program Matrix: {programMatrixFileName}</div>}
               {mspekeFileName && <div>MSPEK: {mspekeFileName}</div>}
               {hardwareQualMatrixFileName && <div>Hardware Qual Matrix: {hardwareQualMatrixFileName}</div>}
@@ -416,16 +416,16 @@ export default function NB_CostSanityCheckPage() {
             </div>
           </div>
 
-          <div className='result_zone'>
-            <div className='result_title'>
+          <div className='DB_result_zone'>
+            <div className='DB_result_title'>
               Result
             </div>
-            <div className="spinner">
+            <div className="DB_spinner">
               {loading && <CircularProgress size={50} />}
             </div>
 
             {downloadFileName && (
-              <div className='download_zone'>
+              <div className='DB_download_zone'>
                 <p><Button onClick={handleDownload} className='handleDownload'>
                   {downloadFileName}
                 </Button></p>

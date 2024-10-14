@@ -314,21 +314,21 @@ export default function NB_CostSanityCheckPage() {
     const downloadFileName = document.querySelector('.downloadFileName');
     const downloadFileName2 = document.querySelector('.downloadFileName2');
 
-    if (uploadBOMComplete) {
+    if (uploadBOMComplete && isDarkMode) {
       // 如果 uploadBOMComplete 為 true，添加 .dark-mode 類
       cost_check_button?.classList.add('dark-mode');
     } 
-    if (uploadBOMComplete && upload_CPC_Complete) {
+    if (uploadBOMComplete && upload_CPC_Complete && isDarkMode) {
       CPC_based_component_check_button?.classList.add('dark-mode');
     }
-    if (uploadBOM_MSPEKE_HQM_Complete ) {
+    if (uploadBOM_MSPEKE_HQM_Complete && isDarkMode ) {
       HQM_based_component_check_button?.classList.add('dark-mode');
       BOM_based_component_check_button?.classList.add('dark-mode');
     }
-    if(downloadFileName){
+    if(downloadFileName && isDarkMode){
       downloadFileName?.classList.add('dark-mode');
     }
-    if(downloadFileName2){
+    if(downloadFileName2 && isDarkMode){
       downloadFileName2?.classList.add('dark-mode');
     }
     
@@ -338,22 +338,22 @@ export default function NB_CostSanityCheckPage() {
   return (
     <div className='cost_sanity_check_page'>
       <title>NB Cost Sanity Check</title>
+      
+      <div className='NB_cost_sanity_check_title_zone'>
+        <Link href="/" onClick={handleDelete} className="go_back_btn">
+          <ArrowBackIcon  style={{marginRight : '8px'}}/>
+          Menu
+        </Link>
+          <h1>NB Cost Sanity Check</h1>
+      </div>
+      
       <button className='dark_mode_btn' onClick={toggleDarkMode} >
           {isDarkMode ? (
           <WbSunnyOutlinedIcon style={{ fontSize: '50px' }} /> // 亮模式圖標
         ) : (
           <DarkModeIcon style={{ fontSize: '50px' }} /> // 暗模式圖標
         )}
-        </button>
-      
-
-      <div className='NB_cost_sanity_check_title_zone'>
-       <Link href="/" onClick={handleDelete} className="go_back_btn">
-        <ArrowBackIcon style={{ verticalAlign: 'middle', marginRight: '8px' }} />
-        Menu
-      </Link>
-        <h1>NB Cost Sanity Check</h1>
-      </div>
+      </button>
 
       <div className='function_zone'>
         <div className='upload_file_zone'>
@@ -492,3 +492,4 @@ export default function NB_CostSanityCheckPage() {
     </div>
   );
 }
+ 

@@ -26,7 +26,7 @@
     box-sizing: border-box;
     font-family: 'Jockey One';
     font-weight: 400;
-    font-size: 6em;
+    font-size: 5em;
     color: black;
     background-color: #EBDEBE;
   }
@@ -86,7 +86,7 @@
   .dark_mode_btn{
    position: absolute;
    right: 3%;
-   top: 6%;
+   top: 7.5%;
    display: flex; 
    
   }
@@ -114,5 +114,5 @@
     background-color: #121212;
     color: #dbdada;
     font-weight: 150;
-    border-radius: 35px;
+    border-radius: 35px;  
   }

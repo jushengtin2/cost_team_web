@@ -519,7 +519,7 @@ def bom_based_component_check():
             df_pm = df_pm.drop(df_pm.index[start_idx:end_idx]).reset_index(drop=True)
 
             #選出Mspeke需要的部分
-            df_mspeke = df_mspeke.iloc[:, [0, 1, 4, 7, 8]].dropna(subset=[df_mspeke.columns[1]])
+            df_mspeke = df_mspeke.loc[:, ['Feature Category', 'Feature\nID', 'Feature Full Name', 'AV # in SCM', 'Notes']].dropna(subset=['Feature\nID'])
             df_hqm = df_hqm[['HP Part No.', 'Qual Status']].dropna(subset=['HP Part No.'])
             hqm_dict = df_hqm.set_index('HP Part No.')['Qual Status'].to_dict()
 
@@ -530,7 +530,6 @@ def bom_based_component_check():
 
             AV_pn = 0
             
-
             for index, row in df_pm.iterrows():
                 if pd.notna(row['AV\nLevel 2']):
                     AV_pn = row['AV\nLevel 2']
@@ -730,7 +729,7 @@ def CPC_check():
                 if key not in SA_PN_dict:
                     SA_PN_dict[key] = row['Cost']
                 else:
-                    SA_PN_dict[key] += row['Cost']
+                    SA_PN_dict[key] += row['Cost'] 
             
             OptionSA = tuple(set(OptionSA))
 

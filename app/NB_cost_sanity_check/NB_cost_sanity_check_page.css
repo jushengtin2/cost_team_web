@@ -9,6 +9,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    background-color: #EBDEBE;
   }
 
   .NB_cost_sanity_check_title_zone {
@@ -37,6 +38,15 @@
     
   }
 
+  .dark_mode_btn{
+    position: absolute;
+    right: 3%;
+    top: 7.5%;
+    display: flex; 
+    color: #121212;
+    
+   }
+
   .function_zone {
     flex: 0 0 80%;
     width: 100%;
@@ -61,7 +71,7 @@
     
     height: 100%;
     width: 60%;
-    background-color: #7b0f49;
+    background-color: #EBDEBE;
   }
 
   .message_zone{
@@ -219,14 +229,7 @@
     background-color: #121212;
     color: #df5b2f;
   }
-  .dark_mode_btn{
-    position: absolute;
-    right: 3%;
-    top: 6%;
-    display: flex; 
-    color: #121212;
-    
-   }
+ 
 
    .upload_file_zone.dark-mode, .choose_function_zone.dark-mode, .message_zone.dark-mode,.result_zone.dark-mode {
     background-color: #121212;

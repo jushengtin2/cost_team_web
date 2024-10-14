@@ -15,7 +15,7 @@ def generate_response():
 
         # 调用本地 Ollama 服务
         ollama_response = requests.post(
-            "http://127.0.0.1:11434/api/generate",  # 本地运行的 Ollama
+            "http://15.38.111.74:11434/api/generate",  # 本地运行的 Ollama
             json={"model": "gemma2:9b ", "prompt": user_input, "stream": False},
             headers={"Content-Type": "application/json"}
         )
