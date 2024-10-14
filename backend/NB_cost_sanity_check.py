@@ -9,6 +9,7 @@ import openpyxl
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Border, Side
 import re
+import requests
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})  #讓3000來的請求都通過CORS 之後架server會需要改
 CORS(app, resources={r"/*": {"origins": "http://taiwan-cost-team"}})  #測試點
@@ -556,11 +557,12 @@ def bom_based_component_check():
                                         max_ratio = ratio
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
-                                    #print(item['AV # in SCM'])
+                                    
                                     if item['AV # in SCM'] == AV_pn:
-                                        #print("123123")
+                                        
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
+                                        AV_pn = 0
                                         break
                         
 
@@ -575,6 +577,7 @@ def bom_based_component_check():
                                     if item['AV # in SCM'] == AV_pn:
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
+                                        AV_pn = 0
                                         break
 
                         elif 'PNL' in cmp_level4_array:
@@ -588,6 +591,7 @@ def bom_based_component_check():
                                     if item['AV # in SCM'] == AV_pn:
                                         max_mspeke_item = item['Feature Full Name']
                                         max_mspeke_item_note = item['Notes']
+                                        AV_pn = 0
                                         break
                         else:
                             for _, item in df_mspeke.iterrows():
@@ -600,6 +604,7 @@ def bom_based_component_check():
                                     #print(AV_pn)
                                     max_mspeke_item = item['Feature Full Name']
                                     max_mspeke_item_note = item['Notes']
+                                    AV_pn = 0
                                     break
                         
                     
@@ -607,7 +612,7 @@ def bom_based_component_check():
                         # 插入結果到對應的行
                         df_pm.at[index, 'Max_MSPEKE_Item'] = max_mspeke_item
                         df_pm.at[index, 'Max_MSPEKE_Item_Note'] = max_mspeke_item_note
-                        df_pm.at[index, 'Description'] = ' '*8 +df_pm.at[index, 'Description'] #所 
+                        
                         #print(f'1. {cmp_level4}, 2.{max_mspeke_item} , 3. {max_ratio}')
 
                         if row['Component\nLevel 4'] not in hqm_dict:
@@ -618,8 +623,12 @@ def bom_based_component_check():
 
                 if pd.notna(row['SA\nLevel 3']):
                     df_pm.at[index, 'Description'] = ' '*4 +df_pm.at[index, 'Description']
+                if pd.notna(row['Component\nLevel 4']):
+                    df_pm.at[index, 'Description'] = ' '*7 +df_pm.at[index, 'Description'] 
                 if pd.notna(row['Component\nLevel 5']):
                     df_pm.at[index, 'Description'] = ' '*12 +df_pm.at[index, 'Description']
+
+                
                 
                 
         output = BytesIO()
@@ -827,7 +836,20 @@ def CPC_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+@app.route('/api/call-superset', methods=['POST'])
+def call_superset():
+    data = request.get_json()
+    payload = {
+        'username': data['username'],
+        'password': data['password'],
+        'provider': 'db'
+    }
+    superset_response = requests.post('http://127.0.0.1:8088/api/v1/security/login', json=payload)
 
+    if superset_response.status_code == 200:
+        return jsonify(superset_response.json())
+    else:
+        return jsonify({'error': 'Failed to call Superset API'}), superset_response.status_code
 
 #Smith-Waterman algorithm計算文字相似度
 def smith_waterman( seq1, seq2, match_score=2, mismatch_score=-1, gap_score=-1):  

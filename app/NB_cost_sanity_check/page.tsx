@@ -4,11 +4,15 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './NB_cost_sanity_check_page.css';
-import { useRef, useState } from 'react';
+import { useRef, useState,useEffect } from 'react';
 import Link from "next/link";
-
+import useDarkMode from '../../hooks/useDarkMode'; // 引入dark-mode的 Hook
+import WbSunnyOutlinedIcon from '@mui/icons-material/WbSunnyOutlined';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 export default function NB_CostSanityCheckPage() {
+  const { isDarkMode, toggleDarkMode } = useDarkMode(); // 使用 Dark Mode Hook
+
   const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
   const mspekeFileInputRef = useRef<HTMLInputElement>(null);
   const hardwareQualMatrixFileInputRef = useRef<HTMLInputElement>(null);
@@ -132,13 +136,14 @@ export default function NB_CostSanityCheckPage() {
         setUploadMessage('Upload successfully');
         setUpload_CPC_Complete(true);
         setUploadBOMComplete(true)
+      
         
       }   
       else if (response.ok && programMatrixFileInputRef.current.files[0])  {
         console.log('Upload successfully');
         setUploadMessage('Upload successfully');
         setUploadBOMComplete(true)
-        
+       
       } 
       
       else {
@@ -299,11 +304,47 @@ export default function NB_CostSanityCheckPage() {
       setLoading(false); // 隱藏旋轉動畫
     }
   };
-  
+
+  //這邊是因為黑暗模式之下有一些幫按鈕掛上dark-mode的衝突所以另外寫一個監聽
+  useEffect(() => {
+    const cost_check_button = document.querySelector('.cost_check_btn');
+    const CPC_based_component_check_button = document.querySelector('.CPC_based_component_check_btn');
+    const HQM_based_component_check_button = document.querySelector('.HQM_based_component_check_btn');
+    const BOM_based_component_check_button = document.querySelector('.BOM_based_component_check_btn');
+    const downloadFileName = document.querySelector('.downloadFileName');
+    const downloadFileName2 = document.querySelector('.downloadFileName2');
+
+    if (uploadBOMComplete) {
+      // 如果 uploadBOMComplete 為 true，添加 .dark-mode 類
+      cost_check_button?.classList.add('dark-mode');
+    } 
+    if (uploadBOMComplete && upload_CPC_Complete) {
+      CPC_based_component_check_button?.classList.add('dark-mode');
+    }
+    if (uploadBOM_MSPEKE_HQM_Complete ) {
+      HQM_based_component_check_button?.classList.add('dark-mode');
+      BOM_based_component_check_button?.classList.add('dark-mode');
+    }
+    if(downloadFileName){
+      downloadFileName?.classList.add('dark-mode');
+    }
+    if(downloadFileName2){
+      downloadFileName2?.classList.add('dark-mode');
+    }
+    
+
+  }, [uploadBOMComplete, upload_CPC_Complete, uploadBOM_MSPEKE_HQM_Complete]); 
 
   return (
     <div className='cost_sanity_check_page'>
       <title>NB Cost Sanity Check</title>
+      <button className='dark_mode_btn' onClick={toggleDarkMode} >
+          {isDarkMode ? (
+          <WbSunnyOutlinedIcon style={{ fontSize: '50px' }} /> // 亮模式圖標
+        ) : (
+          <DarkModeIcon style={{ fontSize: '50px' }} /> // 暗模式圖標
+        )}
+        </button>
       
 
       <div className='NB_cost_sanity_check_title_zone'>
@@ -357,7 +398,7 @@ export default function NB_CostSanityCheckPage() {
         </div>
 
         <div className='choose_function_zone'>
-          <div className='choose_function_title'>
+          <div className='choose_function_title' >
             Choose the function:
           </div>
           <div className='cost_check_zone'>

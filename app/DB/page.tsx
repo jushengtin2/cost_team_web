@@ -304,25 +304,25 @@ export default function NB_CostSanityCheckPage() {
     // 呼叫 API 的函數
     const callSupersetApi = async () => {
       try {
-        const response = await fetch('host.docker.internal/api/v1/advanced_data_type/convert', {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',  // 確保攜帶憑證（如 cookie）
-        body: JSON.stringify({
-          username: 'jushengtin2',
-          password: 'a22753032',
-          provider: 'db',
-        }),
-      });
+        const response = await fetch('http://localhost:8089/api/call-superset', {
+          method: 'POST',
+          mode: 'cors',
 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: 'jushengtin2',
+            password: 'a22753032',
+          }),
+        });
+        const data = await response.json();
+        console.log(data);
       } catch (error) {
         console.error('Error:', error);
-        alert('API 呼叫失敗');
       }
     };
+    
   
 
   return (
