@@ -94,7 +94,7 @@ export default function CRT() {
         </div>
 
 
-      </div>
+      </div>  
       
       <div>
 
