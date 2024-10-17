@@ -9,18 +9,31 @@ import Link from "next/link";
 import useDarkMode from '../../hooks/useDarkMode'; // 引入dark-mode的 Hook
 import WbSunnyOutlinedIcon from '@mui/icons-material/WbSunnyOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+
 
 export default function NB_CostSanityCheckPage() {
   const { isDarkMode, toggleDarkMode } = useDarkMode(); // 使用 Dark Mode Hook
+
+  const [open, setOpen] = React.useState(false); //cpc對話框
+  const [CPC_inputValue, setCPCInputValue] = React.useState('');
+  const [temp_CPC_inputValue, settempCPCInputValue] = React.useState('');
 
   const programMatrixFileInputRef = useRef<HTMLInputElement>(null);
   const mspekeFileInputRef = useRef<HTMLInputElement>(null);
   const hardwareQualMatrixFileInputRef = useRef<HTMLInputElement>(null);
   const CPCFileInputRef = useRef<HTMLInputElement>(null);
+  
 
   const [programMatrixFileName, setProgramMatrixFileName] = useState<string>("");
   const [mspekeFileName, setMspekeFileName] = useState<string>("");
   const [hardwareQualMatrixFileName, setHardwareQualMatrixFileName] = useState<string>("");
+  
   const [CPCFileName, setCPCFileName] = useState<string>("");
 
   const [downloadFileName, setDownloadFileName] = useState<string>('');
@@ -45,15 +58,20 @@ export default function NB_CostSanityCheckPage() {
 
   const handleFileChange = (event, setFileName) => {
     const file = event.target.files[0];
+    
     setDeleteMessage("");
     setUploadMessage("");
-    if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') )) {
-      setFileName(file.name);
+  
+    
+    if (file && (file.name.endsWith('.xlsx') )) {
+      setFileName(file.name); // 更新文件名
       console.log("選擇的文件:", file.name);
-    } else {
-      alert("請選擇一個 Excel 文件 (.xlsx 或 .xls)");
+
+    } else { 
+      alert("請選擇一個 Excel 文件 (.xlsx)");
     }
   };
+  
  
   const handleDelete = async () => {  //要多寫一個跳出頁面的話也要刪掉資料
     try {
@@ -73,11 +91,12 @@ export default function NB_CostSanityCheckPage() {
             setMspekeFileName("");
             setHardwareQualMatrixFileName("");
             setCPCFileName("");
+            setCPCInputValue("")
             setUploadBOMComplete(false);
             setUploadBOM_MSPEKE_HQM_Complete(false);
             setUpload_CPC_Complete(false);
 
-            // 清空文件输入字段的值
+          
             if (programMatrixFileInputRef.current) {
               programMatrixFileInputRef.current.value = "";
             }
@@ -100,6 +119,17 @@ export default function NB_CostSanityCheckPage() {
     }
   };
 
+  const handleClose = () => {
+    setCPCInputValue('0');
+    setOpen(false);
+  };
+
+  const handleSubmit_CPC = (event) => {
+    event.preventDefault();
+    setCPCInputValue(temp_CPC_inputValue);
+    setOpen(false);
+    settempCPCInputValue('')
+  };
 
   const handleUpload = async () => {
 
@@ -108,6 +138,8 @@ export default function NB_CostSanityCheckPage() {
     formData.append('mspekeFile', mspekeFileInputRef.current.files[0]);
     formData.append('hardwareQualMatrixFile', hardwareQualMatrixFileInputRef.current.files[0]);
     formData.append('CPCFile', CPCFileInputRef.current.files[0]);
+    formData.append('CPC_Adder', CPC_inputValue);
+   
  
     try {
  
@@ -120,22 +152,24 @@ export default function NB_CostSanityCheckPage() {
       if (response.ok && programMatrixFileInputRef.current.files[0] && mspekeFileInputRef.current.files[0] &&  hardwareQualMatrixFileInputRef.current.files[0] && CPCFileInputRef.current.files[0])  {
         console.log('Upload successfully');
         setUploadMessage('Upload successfully');
-        setUploadBOMComplete(true)
-        setUploadBOM_MSPEKE_HQM_Complete(true)
-        setUpload_CPC_Complete(true)
+        setUploadBOMComplete(true);
+        setUploadBOM_MSPEKE_HQM_Complete(true);
+        setUpload_CPC_Complete(true);
+        
         
       } 
       else if ( response.ok && programMatrixFileInputRef.current.files[0] && mspekeFileInputRef.current.files[0] &&  hardwareQualMatrixFileInputRef.current.files[0] )  {
         console.log('Upload successfully');
         setUploadMessage('Upload successfully');
-        setUploadBOM_MSPEKE_HQM_Complete(true)
+        setUploadBOM_MSPEKE_HQM_Complete(true);
         setUploadBOMComplete(true)
       }
       else if (response.ok && CPCFileInputRef.current.files[0] && programMatrixFileInputRef.current.files[0])  {
         console.log('Upload successfully');
         setUploadMessage('Upload successfully');
         setUpload_CPC_Complete(true);
-        setUploadBOMComplete(true)
+        setUploadBOMComplete(true);
+        
       
         
       }   
@@ -314,26 +348,20 @@ export default function NB_CostSanityCheckPage() {
     const downloadFileName = document.querySelector('.downloadFileName');
     const downloadFileName2 = document.querySelector('.downloadFileName2');
 
-    if (uploadBOMComplete && isDarkMode) {
-      // 如果 uploadBOMComplete 為 true，添加 .dark-mode 類
+    if (isDarkMode) {
+    
       cost_check_button?.classList.add('dark-mode');
-    } 
-    if (uploadBOMComplete && upload_CPC_Complete && isDarkMode) {
       CPC_based_component_check_button?.classList.add('dark-mode');
-    }
-    if (uploadBOM_MSPEKE_HQM_Complete && isDarkMode ) {
       HQM_based_component_check_button?.classList.add('dark-mode');
       BOM_based_component_check_button?.classList.add('dark-mode');
-    }
-    if(downloadFileName && isDarkMode){
       downloadFileName?.classList.add('dark-mode');
-    }
-    if(downloadFileName2 && isDarkMode){
       downloadFileName2?.classList.add('dark-mode');
-    }
+    } 
     
 
   }, [uploadBOMComplete, upload_CPC_Complete, uploadBOM_MSPEKE_HQM_Complete]); 
+
+
 
   return (
     <div className='cost_sanity_check_page'>
@@ -433,6 +461,7 @@ export default function NB_CostSanityCheckPage() {
               {mspekeFileName && <div>MSPEK: {mspekeFileName}</div>}
               {hardwareQualMatrixFileName && <div>Hardware Qual Matrix: {hardwareQualMatrixFileName}</div>}
               {CPCFileName && <div>CPC: {CPCFileName}</div>}
+              {CPC_inputValue && <div>CPC Adder: {CPC_inputValue}</div>}
               {deleteMessage && <div>{deleteMessage}</div>} {/* 显示删除后的消息 */}
               {uploadMessage && <div>{uploadMessage}</div>}
             </div>
@@ -481,13 +510,49 @@ export default function NB_CostSanityCheckPage() {
           onChange={(event) => handleFileChange(event, setHardwareQualMatrixFileName)}
           title="Choose a file to upload"
         />
+
         <input
           type="file"
           ref={CPCFileInputRef}
           className="hidden-file-input"
           onChange={(event) => handleFileChange(event, setCPCFileName)}
+          onClick={() => setOpen(true)} // 點擊時觸發對話框打開 
           title="Choose a file to upload"
         />
+
+        <React.Fragment><Dialog
+          open={open}
+          onClose={handleClose}
+          PaperProps={{
+            component: 'form',
+            onSubmit: handleSubmit_CPC,
+          }}
+        >
+          <DialogTitle>Enter CPC Adder</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Please enter a number for the CPC Adder.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="CPC_Adder"
+              name="CPC_Adder"
+              label="Enter a number"
+              type="number"
+              fullWidth
+              variant="standard"
+              value={temp_CPC_inputValue}
+              onChange={(e) => settempCPCInputValue(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit">Submit</Button>
+          </DialogActions>
+        </Dialog>
+      </React.Fragment>
       </div>
     </div>
   );

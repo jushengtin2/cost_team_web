@@ -5,14 +5,17 @@ export default function useDarkMode() {
 
   // 使用 useEffect 來確保 localStorage 只在客戶端讀取
   useEffect(() => {
+    // 從 localStorage 獲取 dark mode 狀態
     const darkModeFromStorage = localStorage.getItem('darkMode') === 'true';
     setIsDarkMode(darkModeFromStorage);
     
-    // 根據瀏覽器記憶決定初始化時要不要應用 dark-mode 樣式
-    const allElements = document.querySelectorAll('body, body *');
-    allElements.forEach((element) => {
-      element.classList.toggle('dark-mode', darkModeFromStorage);
-    });
+    // 根據 dark mode 狀態應用或移除樣式
+    if (darkModeFromStorage) {
+      const allElements = document.querySelectorAll('body, body *');
+      allElements.forEach((element) => {
+        element.classList.add('dark-mode');
+      });
+    }
   }, []);
 
   const toggleDarkMode = () => {
